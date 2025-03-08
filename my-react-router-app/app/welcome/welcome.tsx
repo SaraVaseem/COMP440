@@ -1,10 +1,42 @@
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
+import { useState } from "react";
+import './welcome.css';
+import user_icon from '../Assets/person.png'
+import email_icon from '../Assets/email.png'
+import password_icon from '../Assets/password.png'
 
-export function Welcome() {
+export function LoginSignup() {
+
+  const [action,setAction] = useState("Login");
+
   return (
-    <main className="flex items-center justify-center pt-16 pb-4">
-      <div className="flex-1 flex flex-col items-center gap-16 min-h-0">
+    <div className='container'>
+      <div className = "header">
+        <div className = "text">{action}</div>
+        <div className= "underline"></div>
+      </div>
+      <div className="inputs">
+        {action==="Login"?<div></div>:<div className="input">
+        <img src={user_icon} alt="" width="20px" height= "20 px"/>
+        <input type="text" placeholder="Name"/>
+      </div>}
+      <div className="input">
+        <img src={email_icon} alt="" width="20px" height= "20 px"/>
+        <input type="email" placeholder="Email Id"/>
+      </div>
+      <div className="input">
+        <img src={password_icon} alt="" width="20px" height= "20 px"/>
+        <input type="password" placeholder="Password"/>
+      </div>
+      </div>
+      {action==="Sign Up"?<div></div>:<div className="forgot-password">Lost Password? <span>Click Here!</span></div>      }
+      <div className="submit-container">
+        <div className={action==="Login"?"submit gray":"submit"} onClick={()=>{setAction("Sign Up")}}>Sign Up</div>
+        <div className={action==="Sign Up"?"submit gray":"submit"} onClick={()=>{setAction("Login")}}>Login</div>
+      </div>
+    {/*<main className="flex items-center justify-center pt-16 pb-4">
+       <div className="flex-1 flex flex-col items-center gap-16 min-h-0">
         <header className="flex flex-col items-center gap-9">
           <div className="w-[500px] max-w-[100vw] p-4">
             <img
@@ -41,8 +73,9 @@ export function Welcome() {
             </ul>
           </nav>
         </div>
-      </div>
-    </main>
+      </div> 
+    </main>*/}
+    </div>
   );
 }
 

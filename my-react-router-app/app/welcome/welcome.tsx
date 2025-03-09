@@ -1,6 +1,6 @@
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import './welcome.css';
 import user_icon from '../Assets/person.png'
 import email_icon from '../Assets/email.png'
@@ -9,12 +9,33 @@ import password_icon from '../Assets/password.png'
 export function LoginSignup() {
 
   const [action,setAction] = useState("Login");
+  const [data,setData] = useState([{}]);
+
+  useEffect(() => {
+    fetch("/members").then(
+      res => res.json()
+    ).then(
+      data => {
+        setData(data)
+        console.log(data)
+      }
+    )
+  }, [])
 
   return (
     <div className='container'>
       <div className = "header">
         <div className = "text">{action}</div>
         <div className= "underline"></div>
+      </div>
+      <div>
+      {(typeof data.members === 'undefined')? (
+        <p>Loading...</p>
+      ): (
+        data.members.map((member, i) => (
+          <p key={i}>{member}</p>
+        ))
+      )}
       </div>
       <div className="inputs">
         {action==="Login"?<div></div>:<div className="input">

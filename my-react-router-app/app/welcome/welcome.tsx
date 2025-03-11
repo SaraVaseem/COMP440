@@ -1,26 +1,24 @@
-import logoDark from "./logo-dark.svg";
-import logoLight from "./logo-light.svg";
 import React, { useState, useEffect } from "react";
-import './welcome.css';
+import '../welcome/welcome.css';
 import user_icon from '../Assets/person.png'
 import email_icon from '../Assets/email.png'
 import password_icon from '../Assets/password.png'
+// import axios from "axios";
 
 export function LoginSignup() {
 
   const [action,setAction] = useState("Login");
-  const [data,setData] = useState([{}]);
 
-  useEffect(() => {
-    fetch("/members").then(
-      res => res.json()
-    ).then(
-      data => {
-        setData(data)
-        console.log(data)
-      }
-    )
-  }, [])
+//   const [array,setArray] = useState([]);
+
+// const fetchAPI = async () => {
+//   const response = await axios.get("http://localhost:5000/members");
+//   setArray(response.data.members);
+// };
+
+//   useEffect(() => {
+//     fetchAPI();
+//   },[]);
 
   return (
     <div className='container'>
@@ -28,15 +26,15 @@ export function LoginSignup() {
         <div className = "text">{action}</div>
         <div className= "underline"></div>
       </div>
-      <div>
-      {(typeof data.members === 'undefined')? (
-        <p>Loading...</p>
-      ): (
-        data.members.map((member, i) => (
-          <p key={i}>{member}</p>
-        ))
-      )}
-      </div>
+      {/* <div>
+      {array.map((member, index) => (
+        <>
+        <span key = {index}>{member}
+        </span>
+        <br></br>
+        </>
+      ))}
+      </div> */}
       <div className="inputs">
         {action==="Login"?<div></div>:<div className="input">
         <img src={user_icon} alt="" width="20px" height= "20 px"/>

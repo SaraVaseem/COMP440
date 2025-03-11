@@ -1,12 +1,21 @@
 from Backend import create_app
+from flask import Flask, jsonify, render_template
+import datetime
 
 app = create_app()
 
-#Members API Route
-@app.route("/members")
+x = datetime.datetime.now()
 
-def members():
-    return {"members": ["Member1", "Member2", "Member3"]}
+@app.route('/data')
+def get_time():
+
+    # Returning an api for showing in  reactjs
+    return {
+        'Name':"geek", 
+        "Age":"22",
+        "Date":x, 
+        "programming":"python"
+        }
 
 if __name__ == '__main__':
     app.run(debug=True)

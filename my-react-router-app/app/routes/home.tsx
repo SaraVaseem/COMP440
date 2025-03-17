@@ -38,19 +38,5 @@ export default function Home() {
       );
   }, []);
 
-  return <div>
-  {/* <LoginSignup/>  */}
-  
-  <div className="App">
-            <header className="App-header">
-                <h1>React and flask</h1>
-                {/* Calling a data from setdata for showing */}
-                <p>{data.name}</p>
-                <p>{data.age}</p>
-                <p>{data.date}</p>
-                <p>{data.programming}</p>
-
-            </header>
-        </div>
-        </div>
+  return <div> <LoginSignup/> </div> 
 }

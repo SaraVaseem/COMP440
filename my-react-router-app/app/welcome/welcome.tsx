@@ -6,6 +6,7 @@ import email_icon from '../Assets/email.png'
 import password_icon from '../Assets/password.png'
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+//import { hashPassword } from "../hashing"
 
 export default function Signup() {
 
@@ -20,8 +21,10 @@ export default function Signup() {
   // Handle form submission
    const handleSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault()
-    axios.post('http://localhost:5173/login',{username, password, firstName, lastName, email, phone})
+    axios.post('http://localhost:5173/register',{username, password, firstName, lastName, email, phone})
     .then(result => {console.log(result)
+      //hashPassword(password)
+        //console.log("Password verification success:")
       if(result.data === "Success") {
           navigate('/login')
       }

@@ -6,8 +6,8 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   server: {
     proxy: {
-      '/data': {
-        target: 'http://localhost:5000',
+      '/login': {
+        target: 'http://localhost:5173',
         changeOrigin: true,
         secure: false
       }

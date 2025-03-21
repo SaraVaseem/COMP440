@@ -1,75 +1,59 @@
 import React, { useState, useEffect } from "react";
-import Button from '@mui/material/Button'
 import '../welcome/welcome.css';
 import user_icon from '../Assets/person.png'
 import email_icon from '../Assets/email.png'
 import password_icon from '../Assets/password.png'
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Button from '@mui/material/Button'
 
-export default function Signup() {
+export default function Login() {
 
-  const [firstName, setFirstName] = useState()
-  const [lastName, setLastName] = useState()
   const [username, setUsername] = useState()
-  const [phone, setNumber] = useState()
-  const [email, setEmail] = useState()
   const [password, setPassword] = useState()
   const navigate = useNavigate()
 
   // Handle form submission
    const handleSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault()
-    axios.post('http://localhost:5173/login',{username, password, firstName, lastName, email, phone})
+    //need to change to get
+    axios.post('http://localhost:5173/login',{username, password})
     .then(result => {console.log(result)
       if(result.data === "Success") {
-          navigate('/login')
-      }
-    })
+        navigate('/home')
+    }
+  })
     .catch(err => console.log(err))
   };
+
+//   const [array,setArray] = useState([]);
+
+// const fetchAPI = async () => {
+//   const response = await axios.get("http://localhost:5000/members");
+//   setArray(response.data.members);
+// };
+
+//   useEffect(() => {
+//     fetchAPI();
+//   },[]);
 
   return (
     <div className='container'>
       <div className = "header">
-      <div className = "text">Sign Up</div>
+      <div className = "text">Login</div>
         <div className= "underline"></div>
       </div>
       <form onSubmit={handleSubmit}>
       <div className="inputs">
-        <div className="input">
-        <img src={user_icon} alt="" width="20px" height= "20 px"/>
-        <input type="text" placeholder="First Name" name="firstName"
-        onChange={(e) => setFirstName(e.target.value)}/>
-      </div>
-      <div className="input">
-        <img src={user_icon} alt="" width="20px" height= "20 px"/>
-        <input type="text" placeholder="Last Name" name="lastName"
-        onChange={(e) => setLastName(e.target.value)}/>
-      </div>
       <div className="input">
         <img src={user_icon} alt="" width="20px" height= "20 px"/>
         <input type="text" placeholder="Username" name="username"
         onChange={(e) => setUsername(e.target.value)}/>
       </div>
       <div className="input">
-        <img src={user_icon} alt="" width="20px" height= "20 px"/>
-        <input type="text" placeholder="Phone Number" name="phone"
-        onChange={(e) => setNumber(e.target.value)}/>
-      </div>
-      <div className="input">
-        <img src={email_icon} alt="" width="20px" height= "20 px"/>
-        <input type="email" placeholder="Email" name="email"
-        onChange={(e) => setEmail(e.target.value)}/>
-      </div>
-      <div className="input">
         <img src={password_icon} alt="" width="20px" height= "20 px"/>
         <input type="password" placeholder="Password" name="password"
         onChange={(e) => setPassword(e.target.value)}/>
-      </div>
-      <div className="input">
-        <img src={password_icon} alt="" width="20px" height= "20 px"/>
-        <input type="password" placeholder="Confirm Password" name="confirmpassword"/>
       </div>
       </div>
       <br></br>

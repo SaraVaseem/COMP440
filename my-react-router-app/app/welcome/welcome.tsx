@@ -6,7 +6,6 @@ import email_icon from '../Assets/email.png'
 import password_icon from '../Assets/password.png'
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-//import { hashPassword } from "../hashing"
 
 export default function Signup() {
 
@@ -23,8 +22,6 @@ export default function Signup() {
     e.preventDefault()
     axios.post('http://localhost:5173/register',{username, password, firstName, lastName, email, phone})
     .then(result => {console.log(result)
-      //hashPassword(password)
-        //console.log("Password verification success:")
       if(result.data === "Success") {
           navigate('/login')
       }
@@ -67,12 +64,13 @@ export default function Signup() {
       </div>
       <div className="input">
         <img src={password_icon} alt="" width="20px" height= "20 px"/>
-        <input type="password" placeholder="Password" name="password"
-        onChange={(e) => setPassword(e.target.value)}/>
+        <input type="password" placeholder="Password" name="password"/>
       </div>
       <div className="input">
         <img src={password_icon} alt="" width="20px" height= "20 px"/>
-        <input type="password" placeholder="Confirm Password" name="confirmpassword"/>
+        <input type="password" placeholder="Confirm Password" name="confirmpassword"
+        onChange={(e) => e.target.value===password? setPassword(e.target.value): <p>Passwords don't match!</p>}
+        />
       </div>
       </div>
       <br></br>

@@ -68,7 +68,7 @@ export default function Signup() {
           if (err.response.data.error === "Duplicate entry") {
             setError(`Error: ${err.response.data.fields.join(", ")} already in use`);
           } else {
-            setError(err.response.data.error);
+            setError("Username, email, or phone number already taken");
           }
       } else {
         setError("An unexpected error occurred.");

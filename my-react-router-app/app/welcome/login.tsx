@@ -13,10 +13,10 @@ export default function Login() {
   const navigate = useNavigate()
 
   // Handle form submission
-   const handleSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {
+   const handleSubmit = (e) => {
     e.preventDefault()
     //need to change to get
-    axios.post('http://localhost:5173/login',{username, password})
+    axios.post('http://localhost:3000/login',{username, password})
     .then(result => {console.log(result)
       if(result.data === "Success") {
         navigate('/home')

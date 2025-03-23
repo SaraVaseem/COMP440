@@ -6,14 +6,12 @@
                 "enableSsl": "Disabled"
             },
             "previewLimit": 50,
-            "server": "localhost",
+            "server": "127.0.0.1",
             "port": 3306,
             "driver": "MySQL",
-            "name": "comproject registration",
-            "database": "Registration",
-            "username": "root",
-            "password": "Marimbagirl02!",
-            "connectionTimeout": 30
+            "name": "db",
+            "database": "registration",
+            "username": "root"
         }
     ]
 }

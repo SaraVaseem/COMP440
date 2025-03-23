@@ -39,9 +39,6 @@ app.post('/signup', async (req, res) => {
         const checkSql = "SELECT * FROM user WHERE username = ? OR email = ? OR phone = ?";
         const [existingUsers] = await db.promise().execute(checkSql, [username, email, phone]);
 
-        if (existingUsers.length > 0) {
-            return res.status(400).json({ error: "Duplicate entry", fields: existingUsers.map(user => user.username === username ? "username" : user.email === email ? "email" : "phone") });
-        }
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -52,7 +49,7 @@ app.post('/signup', async (req, res) => {
         res.json("Success");
     } catch (err) {
         console.error("Signup Error:", err);
-        res.status(500).json({ error: "Database error", details: err.message });
+        return res.status(400).json({ error: "Duplicate entry", fields: existingUsers.map(user => user.username === username ? "username" : user.email === email ? "email" : "phone") });
     }
 });
     

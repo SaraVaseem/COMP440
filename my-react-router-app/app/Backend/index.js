@@ -13,7 +13,7 @@ app.use(cors())
 const db = mysql.createConnection({
     host: "127.0.0.1",
     user: "root", // Change if needed
-    password: "", //put in your password
+    password: "", //type in your password
     database: "registration"
 });
 db.connect(err => {
@@ -30,7 +30,7 @@ app.post('/signup', async (req, res) => {
     
     const { username, password, firstName, lastName, email, phone } = req.body;
 
-    if (!username || !password || !email) {
+    if (!username || !password || !email || !phone) {
         return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -84,7 +84,7 @@ app.post('/signup', async (req, res) => {
 
     } catch (err) {
         console.error("Login Error:", err);
-        res.status(500).json({ error: "Database error", details: err.message });
+        return res.status(500).json({ error: "Database error", details: err.message });
     }
 });
 

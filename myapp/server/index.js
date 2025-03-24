@@ -6,7 +6,10 @@ import "dotenv/config.js";
 
 const app = express();
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+    origin: 'http://localhost:5173', // if using Vite
+    credentials: true
+  }));
 
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -32,22 +35,29 @@ app.post('/signup', async (req, res) => {
         return res.status(400).json({ error: "Missing required fields" });
     }
 
-    try {
-        // Check for duplicates
-        const checkSql = "SELECT * FROM user WHERE username = ? OR email = ? OR phone = ?";
-        const [existingUsers] = await db.promise().execute(checkSql, [username, email, phone]);
+    let existingUsers = []; // 🔑 Declare in outer scope
 
-        // Hash password
+    try {
+        const checkSql = "SELECT * FROM user WHERE username = ? OR email = ? OR phone = ?";
+        [existingUsers] = await db.promise().execute(checkSql, [username, email, phone]);
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert user
         const sql = "INSERT INTO user (username, password, firstName, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?)";
         await db.promise().execute(sql, [username, hashedPassword, firstName, lastName, email, phone]);
 
         res.json("Success");
     } catch (err) {
         console.error("Signup Error:", err);
-        return res.status(400).json({ error: "Duplicate entry", fields: existingUsers.map(user => user.username === username ? "username" : user.email === email ? "email" : "phone") });
+        
+        const conflictFields = existingUsers.map(user => {
+            if (user.username === username) return "username";
+            if (user.email === email) return "email";
+            if (user.phone === phone) return "phone";
+            return "unknown";
+        });
+
+        return res.status(400).json({ error: "Duplicate entry", fields: conflictFields });
     }
 });
     

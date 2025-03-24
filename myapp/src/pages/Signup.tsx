@@ -59,6 +59,8 @@ export default function Signup() {
             console.error("Signup Error:", err.response.data);
             if (err.response.data.error === "Duplicate entry") {
               setError(`Error: ${err.response.data.fields.join(", ")} already in use`);
+            } else if(err.response.data.error === "Missing required fields"){
+              setError("Missing required fields");
             } else {
               setError("Username, email, or phone number already taken");
             }

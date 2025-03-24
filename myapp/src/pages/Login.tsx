@@ -5,22 +5,15 @@ import password_icon from '../Assets/password.png'
 import axios from "axios";
 import { Navigate } from "react-router-dom";
 import Button from '@mui/material/Button'
+//import {useAuth } from '../auth/AuthContext'
 
 export default function Login() {
 
   const [username, setUsername] = useState()
   const [password, setPassword] = useState()
-  var [success, setSuccess] = useState<boolean>(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  
-    const handleSignIn = () => {
-      if (success) {
-          return <Navigate to="/home" />;  
-      } else {
-        setError("Sign in failed. Please try again.");
-      }
-    };
-  
+ // const {login} = useAuth()
 
   // Handle form submission
    const handleSubmit = (e: React.ChangeEvent<HTMLInputElement> | any) => {
@@ -29,14 +22,16 @@ export default function Login() {
     axios.post('http://localhost:3000/login',{username, password})
     .then(result => {console.log(result)
       setSuccess(true);
+      //login(result)  
     })
     .catch(err => console.log(err))
+    setError("Username and/or password incorrect");
   };
-
-    if (success) {
-      return <Navigate to="/home" />;
-    }
   
+  if (success) {
+    return <Navigate to="/home" replace/>;
+  }
+
   return (
     <div className='container'>
       <div className = "header">
@@ -59,7 +54,7 @@ export default function Login() {
       </div>
       <br></br>
       <div className="button">
-      <Button variant="contained" type="submit" onClick={handleSignIn}>Sign In</Button>
+      <Button variant="contained" type="submit">Sign In</Button>
       </div>      
       </form>
     </div>

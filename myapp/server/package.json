@@ -5,7 +5,18 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon bin/www"
+  },
+  "nodemonConfig": {
+    "verbose": true,
+    "watch": ["server", "bin/www"],
+    "ext": "ts",
+    "ignore": ["*.test.ts"],
+    "delay": "3000",
+    "execMap": {
+      "ts": "ts-node"
+    }
   },
   "keywords": [],
   "author": "",

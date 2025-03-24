@@ -1,1 +1,1 @@
-SELECT username, password FROM user;
+select * from user

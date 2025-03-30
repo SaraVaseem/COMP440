@@ -10,9 +10,14 @@
   },
   "nodemonConfig": {
     "verbose": true,
-    "watch": ["server", "bin/www"],
+    "watch": [
+      "server",
+      "bin/www"
+    ],
     "ext": "ts",
-    "ignore": ["*.test.ts"],
+    "ignore": [
+      "*.test.ts"
+    ],
     "delay": "3000",
     "execMap": {
       "ts": "ts-node"
@@ -22,6 +27,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

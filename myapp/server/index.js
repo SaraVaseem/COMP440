@@ -3,8 +3,12 @@ import cors from 'cors';
 import mysql from 'mysql2';
 import bcrypt from 'bcrypt';
 import "dotenv/config.js";
-
+import path from 'path';
+;
 const app = express();
+const PORT = 3003;
+
+
 app.use(express.json())
 app.use(cors({
     origin: 'http://localhost:5173', // if using Vite
@@ -89,6 +93,7 @@ app.post('/signup', async (req, res) => {
         }
 
         res.json({ message: "Login successful" });
+        res.redirect('/search');
 
     } catch (err) {
         console.error("Login Error:", err);
@@ -96,6 +101,23 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
-    console.log("server is running")
+//app.listen(3000, () => {
+   // console.log("server is running")
+//});
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../searchbar.html'));
+  });
+
+app.post('/search', (req, res) => {
+    const selectedFeatures = req.body.features;
+  
+    console.log('User selected features:', selectedFeatures);
+  
+    // For now, just send them back as a response
+    res.send(`You selected: ${Array.isArray(selectedFeatures) ? selectedFeatures.join(', ') : selectedFeatures}`);
+});
+  
+app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
 });

@@ -153,10 +153,8 @@ app.post("/home", async (req, res) => {
         res.json({ message: "Login successful" });
         res.redirect('/search');
 
-    } catch (err) {
         console.error("Login Error:", err);
         return res.status(500).json({ error: "Database error", details: err.message });
-    }
 });
 
 app.listen(3000, () => {

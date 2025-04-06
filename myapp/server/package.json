@@ -10,9 +10,14 @@
   },
   "nodemonConfig": {
     "verbose": true,
-    "watch": ["server", "bin/www"],
+    "watch": [
+      "server",
+      "bin/www"
+    ],
     "ext": "ts",
-    "ignore": ["*.test.ts"],
+    "ignore": [
+      "*.test.ts"
+    ],
     "delay": "3000",
     "execMap": {
       "ts": "ts-node"

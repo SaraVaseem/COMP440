@@ -9,4 +9,5 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
 });
 
+
 export default pool.promise();

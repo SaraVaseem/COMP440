@@ -4,8 +4,14 @@ import mysql from "mysql2";
 import bcrypt from "bcrypt";
 import "dotenv/config.js";
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 ;
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+app.use(express.static(path.join(__dirname, '..')));
 const PORT = 3003;
 
 
@@ -181,3 +187,24 @@ app.post('/search', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
 });
+
+
+app.get('/reviews', (req, res) => {
+  res.sendFile(path.join(__dirname, '../reviews.html'));
+});
+
+app.get('/search-listings', (req, res) => {
+    const query = req.query.query;
+  
+    const sql = `SELECT title FROM listings WHERE title LIKE ?`;
+    db.query(sql, [`%${query}%`], (err, results) => {
+      if (err) {
+        console.error("DB error: ", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+  
+      //returns the titles for autocomplete
+      const titles = results.map(row => row.title);
+      res.json(titles);
+    });
+  });

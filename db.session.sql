@@ -12,3 +12,15 @@ create table listings (
     date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES user(username)
 );
+
+USE registration;
+
+create table review (
+    username VARCHAr(255),
+    condition TEXT NOT NULL,
+    description TEXT NOT NULL,
+    date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    title VARCH(255) NOT NULL,
+    FOREIGN KEY (title) REFERENCES listing(title)
+    FOREIGN KEY (username) REFERENCES user(username)
+);

@@ -147,7 +147,7 @@ app.post("/home", async (req, res) => {
 
   const [rows] = await db.promise().execute(
     'Select COUNT(*) AS count FROM listings WHERE username = ? AND date BETWEEN ? and ?',
-    [username,startOfDay,endOfDay]
+    [username,startOfDay,endOfDay] 
   );
 
   if(rows[0].count >=2){

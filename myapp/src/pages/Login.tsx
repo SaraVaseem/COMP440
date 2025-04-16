@@ -76,4 +76,4 @@ export default function Login() {
   );
 }
 
-window.location.href = "/search";
+//window.location.href = "/search";

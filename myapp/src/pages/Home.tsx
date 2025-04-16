@@ -29,11 +29,12 @@ export default function Home() {
       // Handle form submission
       const getInfo = (e: React.ChangeEvent<HTMLInputElement> | any) => {
         e.preventDefault()
-        axios.post('http://localhost:3000/home',{
+        axios.post('http://localhost:3003/home',{
           title: title,
           description: description,
           feature: feature,
           price: price,
+          username: 'testuser'
       })
         .then(result => {   console.log("Response from server:", result.data);
             console.log(result.data)

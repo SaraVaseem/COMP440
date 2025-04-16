@@ -8,6 +8,8 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 ;
 const app = express();
+app.use(cors());
+app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -133,16 +135,29 @@ app.post("/login", async (req, res) => {
 app.post("/home", async (req, res) => {
   console.log("Insert rental info request received:", req.body);
 
-  const { title, description, feature, price } = req.body;
+  const { title, description, feature, price, username } = req.body;
 
   if (!title || !description || !feature || !price) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
+  const now = new Date();
+  const startOfDay = new Date(now.setHours(0,0,0,0));
+  const endOfDay = new Date(now.setHours(23,59,59,999));
+
+  const [rows] = await db.promise().execute(
+    'Select COUNT(*) AS count FROM listings WHERE username = ? AND date BETWEEN ? and ?',
+    [username,startOfDay,endOfDay]
+  );
+
+  if(rows[0].count >=2){
+    return res.status(403).json({message: "You can only post 2 listings per day. "});
+  }
+
   try {
     const sql =
       "INSERT INTO listings (title, description, feature, price) VALUES (?, ?, ?, ?)";
-    await db.promise().execute(sql, [title, description, feature, price]);
+    await db.promise().execute(sql, [title, description, feature, price, username]);
 
     res.json("Success");
   } catch (err) {
@@ -157,7 +172,6 @@ app.post("/home", async (req, res) => {
     });
   }
         res.json({ message: "Login successful" });
-        res.redirect('/search');
 
         console.error("Login Error:", err);
         return res.status(500).json({ error: "Database error", details: err.message });
@@ -172,17 +186,18 @@ app.listen(3000, () => {
 //});
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../searchbar.html'));
+    //res.sendFile(path.join(__dirname, '../searchbar.html'));
   });
 
-app.post('/search', (req, res) => {
-    const selectedFeatures = req.body.features;
   
-    console.log('User selected features:', selectedFeatures);
+/* app.post('/search', (req, res) => {
+     const selectedFeatures = req.body.features;
   
-    // For now, just send them back as a response
+     console.log('User selected features:', selectedFeatures);
+  
+    //For now, just send them back as a response
     res.send(`You selected: ${Array.isArray(selectedFeatures) ? selectedFeatures.join(', ') : selectedFeatures}`);
-});
+});*/
   
 app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
@@ -193,18 +208,6 @@ app.get('/reviews', (req, res) => {
   res.sendFile(path.join(__dirname, '../reviews.html'));
 });
 
-app.get('/search-listings', (req, res) => {
-    const query = req.query.query;
-  
-    const sql = `SELECT title FROM listings WHERE title LIKE ?`;
-    db.query(sql, [`%${query}%`], (err, results) => {
-      if (err) {
-        console.error("DB error: ", err);
-        return res.status(500).json({ error: "Database error" });
-      }
-  
-      //returns the titles for autocomplete
-      const titles = results.map(row => row.title);
-      res.json(titles);
-    });
-  });
+
+
+

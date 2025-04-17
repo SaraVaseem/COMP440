@@ -167,12 +167,12 @@ export default function Signup() {
         </div>
         <br></br>
         <div className="button">
-          <Button variant="contained" type="submit">
+          <Button variant="contained" style={{ backgroundColor: "#4c00b4", color: "white" }} type="submit">
             Submit
           </Button>
         </div>
 
-        <div className="login-link" style={{ color: "Black"}}>
+        <div className="login-link" style={{color: "Black" }}>
           Already have an account? <Link to="/login">Login</Link>
         </div>
 

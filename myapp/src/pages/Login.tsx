@@ -68,7 +68,7 @@ export default function Login() {
         </div>
         <br></br>
         <div className="button">
-          <Button variant="contained" type="submit">
+          <Button variant="contained" style={{ backgroundColor: "#4c00b4", color: "white" }} type="submit">
             Sign In
           </Button>
         </div>

@@ -146,3 +146,33 @@
   justify-content: center;
   align-items: center;
 }
+
+.signup_link{
+  font-size:16px rem;
+  color: #b40000;
+}
+
+.signup-link a{
+  font-weight: bold;
+  text-decoration: none;
+  color: #4c00b4;
+}
+
+.signup-link a:hover{
+  text-decoration: underline;
+}
+
+.login-link{
+  font-size:16px rem;
+  color: #b40000;
+}
+
+.login-link a{
+  font-weight: bold;
+  text-decoration: none;
+  color: #4c00b4;
+}
+
+.login-link a:hover{
+  text-decoration: underline;
+}

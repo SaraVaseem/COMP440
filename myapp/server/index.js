@@ -144,7 +144,6 @@ app.post("/home", async (req, res) => {
 
         console.error("Login Error:", err);
         return res.status(500).json({ error: "Database error", details: err.message });
-    }
 });
 
 app.listen(3000, () => {

@@ -91,14 +91,93 @@ app.post('/signup', async (req, res) => {
             return res.status(400).json({ error: "Invalid username or password" });
         }
 
+    res.json({ message: "Login successful" });
+  } catch (err) {
+    console.error("Login Error:", err);
+    return res
+      .status(500)
+      .json({ error: "Database error", details: err.message });
+  }
+});
+
+// Insert rental
+app.post("/home", async (req, res) => {
+  console.log("Insert rental info request received:", req.body);
+
+  const { title, description, feature, price, username } = req.body;
+
+  if (!title || !description || !feature || !price) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const now = new Date();
+  const startOfDay = new Date(now.setHours(0,0,0,0));
+  const endOfDay = new Date(now.setHours(23,59,59,999));
+
+  const [rows] = await db.promise().execute(
+    'Select COUNT(*) AS count FROM listings WHERE username = ? AND date BETWEEN ? and ?',
+    [username,startOfDay,endOfDay] 
+  );
+
+  if(rows[0].count >=2){
+    return res.status(403).json({message: "You can only post 2 listings per day. "});
+  }
+
+  try {
+    const sql =
+      "INSERT INTO listings (title, description, feature, price) VALUES (?, ?, ?, ?)";
+    await db.promise().execute(sql, [title, description, feature, price, username]);
+
+    res.json("Success");
+  } catch (err) {
+    console.error("Rental Insertion Error:", err);
+
+    const conflictFields = existingUsers.map((rental) => {
+      if (rental.title === title) return "title";
+      if (rental.description === description) return "description";
+      if (rental.feature === feature) return "feature";
+      if (rental.price === price) return "price";
+      return "unknown";
+    });
+  }
         res.json({ message: "Login successful" });
 
-    } catch (err) {
         console.error("Login Error:", err);
         return res.status(500).json({ error: "Database error", details: err.message });
     }
 });
 
 app.listen(3000, () => {
-    console.log("server is running")
+  console.log("server is running");
 });
+
+//app.listen(3000, () => {
+   // console.log("server is running")
+//});
+
+app.get('/', (req, res) => {
+    //res.sendFile(path.join(__dirname, '../searchbar.html'));
+  });
+
+  
+/* app.post('/search', (req, res) => {
+     const selectedFeatures = req.body.features;
+  
+     console.log('User selected features:', selectedFeatures);
+  
+    //For now, just send them back as a response
+    res.send(`You selected: ${Array.isArray(selectedFeatures) ? selectedFeatures.join(', ') : selectedFeatures}`);
+});*/
+  
+app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
+});
+
+
+app.get('/reviews', (req, res) => {
+  res.sendFile(path.join(__dirname, '../reviews.html'));
+});
+
+
+
+

@@ -6,6 +6,7 @@ import email_icon from "../Assets/email.png";
 import password_icon from "../Assets/password.png";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function Signup() {
   const [firstName, setFirstName] = useState();
@@ -166,10 +167,15 @@ export default function Signup() {
         </div>
         <br></br>
         <div className="button">
-          <Button variant="contained" type="submit">
+          <Button variant="contained" style={{ backgroundColor: "#4c00b4", color: "white" }} type="submit">
             Submit
           </Button>
         </div>
+
+        <div className="login-link" style={{color: "Black" }}>
+          Already have an account? <Link to="/login">Login</Link>
+        </div>
+
       </form>
     </div>
   );

@@ -146,6 +146,25 @@
   justify-content: center;
   align-items: center;
 }
+.signup-link a{
+  font-weight: bold;
+  text-decoration: none;
+  color: #4c00b4;
+}
+
+.signup-link a:hover{
+  text-decoration: underline;
+}
+
+.login-link a{
+  font-weight: bold;
+  text-decoration: none;
+  color: #4c00b4;
+}
+
+.login-link a:hover{
+  text-decoration: underline;
+}
 
 .home-text {
   margin-top: 400px;

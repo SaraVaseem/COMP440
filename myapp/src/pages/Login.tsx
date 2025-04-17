@@ -4,6 +4,7 @@ import user_icon from "../Assets/person.png";
 import password_icon from "../Assets/password.png";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Button from "@mui/material/Button";
 //import {useAuth } from '../auth/AuthContext'
 
@@ -32,7 +33,7 @@ export default function Login() {
   if (success) {
     return <Navigate to="/home"/>;
   }
-
+// return is pretty stuff what is being returned tp the user
   return (
     <div className="container">
       <div className="header">
@@ -67,13 +68,18 @@ export default function Login() {
         </div>
         <br></br>
         <div className="button">
-          <Button variant="contained" type="submit">
+          <Button variant="contained" style={{ backgroundColor: "#4c00b4", color: "white" }} type="submit">
             Sign In
           </Button>
         </div>
+
+        <div className="signup-link" style={{ color: "Black"}}>
+          Don’t have an account? <Link to="/signup">Sign up</Link>
+        </div>
+
       </form>
     </div>
   );
 }
 
-// window.location.href = "/search";
+//window.location.href = "/search";

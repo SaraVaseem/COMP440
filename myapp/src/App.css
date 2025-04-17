@@ -146,3 +146,9 @@
   justify-content: center;
   align-items: center;
 }
+
+.home-text {
+  margin-top: 400px;
+  color: #3c009d;
+  font-size: 30px;
+}

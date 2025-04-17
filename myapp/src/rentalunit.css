@@ -17,3 +17,13 @@
   #suggestions div:hover {
     background-color: #f0f0f0;
   }
+
+  .rentalunit {
+    width: 700px;
+    height: 500px;
+    display: grid;
+    font-family: 'Times New Roman';
+    background-color:#3c009d;
+    grid-template-columns: 1fr 1fr 1fr;
+    place-items: center;
+  }

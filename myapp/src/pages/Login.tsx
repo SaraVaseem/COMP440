@@ -30,7 +30,7 @@ export default function Login() {
   };
 
   if (success) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/home"/>;
   }
 
   return (
@@ -76,4 +76,4 @@ export default function Login() {
   );
 }
 
-window.location.href = "/search";
+// window.location.href = "/search";

@@ -31,9 +31,9 @@ body{
     cursor: pointer;
 }
 
-.feature-form input[type:"checkbox"]{
+/* .feature-form input[type:"checkbox"]{
     margin-right: 8px;
-}
+} */
 
 .feature-form button{
     display: block;
@@ -53,5 +53,25 @@ body{
     background-color: #45a049;
 }
 
+ .input-container {
+    width: 1170px;
+    padding: 20px 30px;
+    border-radius: 10px;
+    margin: 20px auto;
+    background-color: #fff;
+ } 
+
+ .input-container label {
+    margin-right: 20px;
+    font-size: 22px;
+    font-weight: bold;
+ }
   
-  
+
+ .search-box {
+    display: flex;
+  margin-top: 50px;
+  margin-bottom: 100px;
+  width: 700px;
+  background: #fff;
+ }

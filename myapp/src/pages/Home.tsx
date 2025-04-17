@@ -3,8 +3,9 @@ import '../App.css'
 // import { AddRental } from "../components/AddRental.jsx"
 import { SearchBar } from "../components/SearchBar.jsx"
 // import { FilterBy } from "../components/FilterBy.jsx"
-import RentalUnit from "../components/RentalUnit.js" 
+import RentalUnit from "../components/RentalUnit" 
 import "../rentalunit.css"
+import AddRental from "../components/AddRental"
 
 export const dummyData = [
   {
@@ -54,12 +55,8 @@ export const dummyData = [
 export default function Home() {
   return (
     <>
-    <div className="home-text">
-      <h1>Rentals</h1>
-      </div>
-      <div className="search-box">
       <SearchBar/>
-      </div>
+      <AddRental/>
        <div className="rentalunit"> 
         {
         dummyData.map((unit) => 

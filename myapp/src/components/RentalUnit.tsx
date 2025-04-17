@@ -3,6 +3,18 @@ import { Button } from '@mui/material'
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import Dialog from '@mui/material/Dialog';
+import {useState} from 'react';
+import '../App.css'
+
+const emails = ['username@gmail.com', 'user02@gmail.com'];
+
+export interface SimpleDialogProps {
+  open: boolean;
+  selectedValue: string;
+  onClose: (value: string) => void;
+}
 
 export interface Unit {
   id: number;
@@ -13,18 +25,19 @@ export interface Unit {
 }
 
 export default function RentalUnit(props:Unit) {
-  // const { id, title, description, feature, price } = props.data;
-  // const [open, setOpen] = useState(false);
-  // const [review, setReview] = useState(reviews);
 
-  // const handleClickOpen = () => {
-  //   setOpen(true);
-  // };
+  const [open, setOpen] = useState(false);
+  const [selectedValue, setSelectedValue] = useState(emails[1]);
 
-  // const handleClose = (value) => {
-  //   setOpen(false);
-  //   setReview(value);
-  // };
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = (value: string) => {
+    setOpen(false);
+    setSelectedValue(value);
+  };
+
   
   return (
     <Card className="h-100">
@@ -40,56 +53,62 @@ export default function RentalUnit(props:Unit) {
           {props.feature}
           </div>
           </CardContent>
-        <div className="mt-auto">
+        <div className="mt-auto" onClick={handleClickOpen}>
             <Button className="w-100">
               Add Review
             </Button>
         </div>
-        {/* <SimpleDialog
-        review={review}
+      <AddReview
+        selectedValue={selectedValue}
         open={open}
         onClose={handleClose}
-      /> */}
+      />
     </Card>
   )
 }
 
-// export function AddReview() {
-//   const { onClose, review, open } = props.data;
+export function AddReview(props: SimpleDialogProps) {
 
-//   const handleClose = () => {
-//     onClose(review);
-//   };
+  const { onClose, selectedValue, open } = props;
+  
+  const handleClose = () => {
+    onClose(selectedValue);
+  };
 
-//   return (
-//     <Dialog onClose={handleClose} open={open}>
-//       <DialogTitle>Add Review</DialogTitle>
-//       <form id="review-form" method="POST" action="/submit-review">
-    
-//       <span className="fs-2">{title}</span>
-//           <span className="ms-2 text-muted">{price}</span>
-//         <div className="mt-auto">
-//           {description}
-//           </div>
-//           <div className="mt-auto">
-//           {feature}
-//           </div>
+  const handleListItemClick = (value: string) => {
+    onClose(value);
+  };
 
-//     <!-- Rating dropdown -->
-//     <label>Rating:</label>
-//     <select id="rating" name="rating">
-//       <option value="Excellent">Excellent</option>
-//       <option value="Good">Good</option>
-//       <option value="Fair">Fair</option>
-//       <option value="Poor">Poor</option>
-//     </select>
+  return (
+    <Dialog onClose={handleClose} open={open}>
+        <div className='text'>
+      <DialogTitle>Leave a Review</DialogTitle></div>
 
-//     {/* <!-- Description --> */}
-//     <label>Description:</label>
-//     <textarea id="description" name="description"></textarea>
+<form id="review-form" method="POST" action="/home">
+  
+  {/* <!-- Search bar --> */}
+  <label>Listing Title: {}</label>
+  <br/>
+  <label>Listing Description: {}</label>
+  <br/>
 
-//     <button type="submit">Submit Review</button>
-//   </form>
-//     </Dialog>
-//   );
-// }
+  <label>Description:</label>
+  <textarea id="description" name="description"></textarea>
+
+  {/* <!-- Rating dropdown --> */}
+  <label>Rating:</label>
+  <select id="rating" name="rating">
+    <option value="Excellent">Excellent</option>
+    <option value="Good">Good</option>
+    <option value="Fair">Fair</option>
+    <option value="Poor">Poor</option>
+  </select>
+<br/>
+<br/>
+<div className="button">
+  <button type="submit">Submit Review</button>
+  </div>
+</form>
+    </Dialog>
+  );
+}

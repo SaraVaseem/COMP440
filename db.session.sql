@@ -21,6 +21,6 @@ create table review (
     description TEXT NOT NULL,
     date DATETIME DEFAULT CURRENT_TIMESTAMP,
     title VARCH(255) NOT NULL,
-    FOREIGN KEY (title) REFERENCES listing(title)
+    FOREIGN KEY (title) REFERENCES listing(title),
     FOREIGN KEY (username) REFERENCES user(username)
 );

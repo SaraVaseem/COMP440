@@ -1,95 +1,112 @@
-import express from 'express';
-import cors from 'cors';
-import mysql from 'mysql2';
-import bcrypt from 'bcrypt';
+import express from "express";
+import cors from "cors";
+import mysql from "mysql2";
+import bcrypt from "bcrypt";
 import "dotenv/config.js";
 
 const users = []; // In-memory user store (use DB in real apps)
-const SECRET_KEY = 'your_jwt_secret_key';
+const SECRET_KEY = "your_jwt_secret_key";
 
 const app = express();
-app.use(express.json())
-app.use(cors({
-    origin: 'http://localhost:5173', // if using Vite
-    credentials: true
-  }));
+app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // if using Vite
+    credentials: true,
+  })
+);
 
 const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER, // Change if needed
-    password: process.env.DB_PASS, //type in your password
-    database: process.env.DB_NAME
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER, // Change if needed
+  password: process.env.DB_PASS, //type in your password
+  database: process.env.DB_NAME,
 });
-db.connect(err => {
-    if (err) {
-        console.error("Database connection failed:", err.message);
-    } else {
-        console.log("Connected to MySQL Database");
-    }
+db.connect((err) => {
+  if (err) {
+    console.error("Database connection failed:", err.message);
+  } else {
+    console.log("Connected to MySQL Database");
+  }
 });
 
 // Signup route - create a new user
-app.post('/signup', async (req, res) => {
-    console.log("Signup request received:", req.body);
-    
-    const { username, password, firstName, lastName, email, phone } = req.body;
+app.post("/signup", async (req, res) => {
+  console.log("Signup request received:", req.body);
 
-    if (!username || !password || !email || !phone) {
-        return res.status(400).json({ error: "Missing required fields" });
-    }
+  const { username, password, firstName, lastName, email, phone } = req.body;
 
-    let existingUsers = []; // 🔑 Declare in outer scope
+  if (!username || !password || !email || !phone) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
 
-    try {
-        const checkSql = "SELECT * FROM user WHERE username = ? OR email = ? OR phone = ?";
-        existingUsers = await db.promise().execute(checkSql, [username, email, phone]);
+  let existingUsers = []; // 🔑 Declare in outer scope
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const checkSql =
+      "SELECT * FROM user WHERE username = ? OR email = ? OR phone = ?";
+    existingUsers = await db
+      .promise()
+      .execute(checkSql, [username, email, phone]);
 
-        const sql = "INSERT INTO user (username, password, firstName, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?)";
-        await db.promise().execute(sql, [username, hashedPassword, firstName, lastName, email, phone]);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-        res.json("Success");
-    } catch (err) {
-        console.error("Signup Error:", err);
-        
-        const conflictFields = existingUsers.map(user => {
-            if (user.username === username) return "username";
-            if (user.email === email) return "email";
-            if (user.phone === phone) return "phone";
-            return "unknown";
-        });
+    const sql =
+      "INSERT INTO user (username, password, firstName, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?)";
+    await db
+      .promise()
+      .execute(sql, [
+        username,
+        hashedPassword,
+        firstName,
+        lastName,
+        email,
+        phone,
+      ]);
 
-        return res.status(400).json({ error: "Duplicate entry", fields: conflictFields });
-    }
+    res.json("Success");
+  } catch (err) {
+    console.error("Signup Error:", err);
+
+    const conflictFields = existingUsers.map((user) => {
+      if (user.username === username) return "username";
+      if (user.email === email) return "email";
+      if (user.phone === phone) return "phone";
+      return "unknown";
+    });
+
+    return res
+      .status(400)
+      .json({ error: "Duplicate entry", fields: conflictFields });
+  }
 });
-    
-  // Login route - authenticate user
-  app.post("/login", async (req, res) => {
-    console.log("Login request received:", req.body);
-    
-    const { username, password } = req.body;
-    if (!username || !password) {
-        return res.status(400).json({ error: "Missing username or password" });
+
+// Login route - authenticate user
+app.post("/login", async (req, res) => {
+  console.log("Login request received:", req.body);
+
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: "Missing username or password" });
+  }
+
+  try {
+    // Fetch user from the database
+    const sql = "SELECT * FROM user WHERE username = ?";
+    const [users] = await db.promise().execute(sql, [username]);
+
+    if (users.length === 0) {
+      return res.status(400).json({ error: "Invalid username or password" });
     }
 
-    try {
-        // Fetch user from the database
-        const sql = "SELECT * FROM user WHERE username = ?";
-        const [users] = await db.promise().execute(sql, [username]);
+    const user = users[0];
 
-        if (users.length === 0) {
-            return res.status(400).json({ error: "Invalid username or password" });
-        }
+    // Compare the entered password with the hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
 
-        const user = users[0];
-
-        // Compare the entered password with the hashed password
-        const isMatch = await bcrypt.compare(password, user.password);
-        
-        if (!isMatch) {
-            return res.status(400).json({ error: "Invalid username or password" });
-        }
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid username or password" });
+    }
 
     res.json({ message: "Login successful" });
   } catch (err) {
@@ -111,22 +128,28 @@ app.post("/home", async (req, res) => {
   }
 
   const now = new Date();
-  const startOfDay = new Date(now.setHours(0,0,0,0));
-  const endOfDay = new Date(now.setHours(23,59,59,999));
+  const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+  const endOfDay = new Date(now.setHours(23, 59, 59, 999));
 
-  const [rows] = await db.promise().execute(
-    'Select COUNT(*) AS count FROM listings WHERE username = ? AND date BETWEEN ? and ?',
-    [username,startOfDay,endOfDay] 
-  );
+  const [rows] = await db
+    .promise()
+    .execute(
+      "Select COUNT(*) AS count FROM listings WHERE username = ? AND date BETWEEN ? and ?",
+      [username, startOfDay, endOfDay]
+    );
 
-  if(rows[0].count >=2){
-    return res.status(403).json({message: "You can only post 2 listings per day. "});
+  if (rows[0].count >= 2) {
+    return res
+      .status(403)
+      .json({ message: "You can only post 2 listings per day. " });
   }
 
   try {
     const sql =
       "INSERT INTO listings (title, description, feature, price) VALUES (?, ?, ?, ?)";
-    await db.promise().execute(sql, [title, description, feature, price, username]);
+    await db
+      .promise()
+      .execute(sql, [title, description, feature, price, username]);
 
     res.json("Success");
   } catch (err) {
@@ -140,10 +163,91 @@ app.post("/home", async (req, res) => {
       return "unknown";
     });
   }
-        res.json({ message: "Login successful" });
+  res.json({ message: "Login successful" });
 
-        console.error("Login Error:", err);
-        return res.status(500).json({ error: "Database error", details: err.message });
+  console.error("Login Error:", err);
+  return res
+    .status(500)
+    .json({ error: "Database error", details: err.message });
+});
+
+// Submitting rental reviews info based on criteria by **KAUNG**
+app.post("/reviews", async (req, res) => {
+  console.log("Review request received:", req.body);
+
+  const { condition, description, title, username } = req.body;
+
+  if (!condition || !description || !title || !username) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    //Here checking if the listings exist and extract the owner based on the title itself
+    const [listingRows] = await db
+      .promise()
+      .execute("SELECT username FROM listings WHERE title = ?", [title]);
+
+    // IF the listing is not found, return an error
+    if (listingRows.length === 0) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+
+    // Fetching the username of the person who owns the listing
+    const listingOwner = listingRows[0].username;
+    if (listingOwner === username) {
+      return res
+        .status(403)
+        .json({ error: "You cannot review your own rental unit" });
+    }
+
+    // Checking if user has reviewed the listings in case
+    const [existingReview] = await db
+      .promise()
+      .execute("SELECT * FROM review WHERE username = ? AND title = ?", [
+        username,
+        title,
+      ]);
+
+    // IF this current review from user exists for this listing, just reject the request
+    if (existingReview.length > 0) {
+      return res
+        .status(409)
+        .json({ error: "You have already reviewed this listing" });
+    }
+
+    // Making sure the user's review limit does not exceed 3 within a day timeframe
+    const now = new Date();
+    // Here setting the start of the day in (HH, MM, SS) format according to real time on your device end
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
+    // Setting the end of the day in (HH, MM, SS) format according to real time on your device end
+    const [reviewCountRows] = await db
+      .promise()
+      .execute(
+        "SELECT COUNT(*) AS count FROM review WHERE username = ? AND date BETWEEN ? AND ?",
+        [username, startOfDay, endOfDay]
+      );
+
+    // IF the user already submitted 3 reviews today, just reject the request
+    if (reviewCountRows[0].count >= 3) {
+      return res
+        .status(403)
+        .json({ error: "You can only post 3 reviews per day" });
+    }
+
+    // Inserting review into the database
+    const sql =
+      "INSERT INTO review (username, condition, description, title) VALUES (?, ?, ?, ?)";
+    await db.promise().execute(sql, [username, condition, description, title]);
+
+    // IF everything is successful, respond with success
+    res.json({ message: "Review submitted successfully" });
+  } catch (err) {
+    // IF an error occurs, log it and return a server error response
+    console.error("Review submission error:", err);
+    res.status(500).json({ error: "Database error", details: err.message });
+  }
 });
 
 app.listen(3000, () => {
@@ -151,14 +255,13 @@ app.listen(3000, () => {
 });
 
 //app.listen(3000, () => {
-   // console.log("server is running")
+// console.log("server is running")
 //});
 
-app.get('/', (req, res) => {
-    //res.sendFile(path.join(__dirname, '../searchbar.html'));
-  });
+app.get("/", (req, res) => {
+  //res.sendFile(path.join(__dirname, '../searchbar.html'));
+});
 
-  
 /* app.post('/search', (req, res) => {
      const selectedFeatures = req.body.features;
   
@@ -167,16 +270,11 @@ app.get('/', (req, res) => {
     //For now, just send them back as a response
     res.send(`You selected: ${Array.isArray(selectedFeatures) ? selectedFeatures.join(', ') : selectedFeatures}`);
 });*/
-  
+
 app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
+  console.log(`Server is running at http://localhost:${PORT}`);
 });
 
-
-app.get('/reviews', (req, res) => {
-  res.sendFile(path.join(__dirname, '../reviews.html'));
+app.get("/reviews", (req, res) => {
+  res.sendFile(path.join(__dirname, "../reviews.html"));
 });
-
-
-
-

@@ -172,7 +172,7 @@ app.post("/home", async (req, res) => {
 });
 
 // Submitting rental reviews info based on criteria by **KAUNG**
-app.post("/reviews", async (req, res) => {
+app.post("/home", async (req, res) => {
   console.log("Review request received:", req.body);
 
   const { condition, description, title, username } = req.body;

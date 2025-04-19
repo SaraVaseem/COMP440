@@ -63,6 +63,7 @@
   color: #3c009d;
   font-size: 48px;
   font-weight: 700;
+  margin-top: 10px;
 }
 
 .underline {
@@ -169,4 +170,5 @@
   color: #3c009d;
   font-size: 30px;
   margin-bottom: 30px;
+  margin-top: 500px;
 }

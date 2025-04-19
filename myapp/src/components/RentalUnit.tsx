@@ -7,13 +7,12 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import {useState} from 'react';
 import '../App.css'
-
-const emails = ['username@gmail.com', 'user02@gmail.com'];
+import axios from 'axios';
 
 export interface SimpleDialogProps {
   open: boolean;
-  selectedValue: string;
-  onClose: (value: string) => void;
+  success: boolean;
+  onClose: (value: boolean) => void;
 }
 
 export interface Unit {
@@ -26,31 +25,62 @@ export interface Unit {
 
 export default function RentalUnit(props:Unit) {
 
+  const [description, setDescription] = useState();
+  const [rating, setRating] = useState();
+  const [error, setError] = useState("");
+
+  const handleSubmit = (e: React.ChangeEvent<HTMLInputElement> | any) => {
+    e.preventDefault();
+    const username = localStorage.getItem("username") ?? "guest_user";
+    localStorage.setItem("title", props.title);
+    const title = localStorage.getItem("title") ?? "none";
+      console.log(username,title)
+
+      axios.post("http://localhost:3000/add-review", {
+        description: description,
+        rating: rating,
+        username: username,
+        title: title,
+      })
+      .then((result) => {
+        console.log("Response from server:", result.data);
+        console.log(result.data);
+        setOpen(false);
+      })
+      .catch((err) => {
+        if (err.response && err.response.data) {
+          console.error("Add Review Error:", err.response.data);
+          setError(err.response.data)
+      }
+    });
+};
+
+
   const [open, setOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState(emails[1]);
 
   const handleClickOpen = () => {
     setOpen(true);
   };
 
-  const handleClose = (value: string) => {
+  const handleClose = () => {
     setOpen(false);
-    setSelectedValue(value);
   };
 
-  
   return (
+    <div>
     <Card className="h-100">
         <CardHeader className="d-flex justify-content-between align-items-baseline mb-4">
-          <span className="fs-2">{props.title}</span>
-          <span className="ms-2 text-muted">{props.price}</span>
         </CardHeader>
         <CardContent>
         <div className="mt-auto">
-          {props.description}
-          </div>
-          <div className="mt-auto">
+        <span className="fs-2"><strong>Title:</strong>{props.title}</span>
+        <br/>
+        <strong>Description:</strong>{props.description}
+        <br/>
+          <strong>Features:</strong>
           {props.feature}
+          <br/>
+          <span className="ms-2 text-muted"><strong>Price:</strong>${props.price}</span>
           </div>
           </CardContent>
         <div className="mt-auto" onClick={handleClickOpen}>
@@ -58,46 +88,34 @@ export default function RentalUnit(props:Unit) {
               Add Review
             </Button>
         </div>
-      <AddReview
-        selectedValue={selectedValue}
-        open={open}
-        onClose={handleClose}
-      />
     </Card>
-  )
-}
 
-export function AddReview(props: SimpleDialogProps) {
-
-  const { onClose, selectedValue, open } = props;
-  
-  const handleClose = () => {
-    onClose(selectedValue);
-  };
-
-  const handleListItemClick = (value: string) => {
-    onClose(value);
-  };
-
-  return (
-    <Dialog onClose={handleClose} open={open}>
+        <Dialog open={open}
+        onClose={handleClose}>
         <div className='text'>
       <DialogTitle>Leave a Review</DialogTitle></div>
 
-<form id="review-form" method="POST" action="/home">
-  
-  {/* <!-- Search bar --> */}
-  <label>Listing Title: {}</label>
+<form id="review-form" onSubmit={handleSubmit}>
+    <label>Listing Title: {props.title}</label>
   <br/>
-  <label>Listing Description: {}</label>
+  <label>Listing Description: {props.description}</label>
   <br/>
 
-  <label>Description:</label>
-  <textarea id="description" name="description"></textarea>
+  <label>Review Description:</label>
+  <input
+              type="description"
+              placeholder="description"
+              name="description"
+              onChange={(e: React.ChangeEvent<HTMLInputElement> | any) =>
+              setDescription(e.target.value)
+                            }
+            />
 
   {/* <!-- Rating dropdown --> */}
   <label>Rating:</label>
-  <select id="rating" name="rating">
+  <select id="rating" name="rating"                             
+  onChange={(e: React.ChangeEvent<HTMLInputElement> | any) =>
+                              setRating(e.target.value)}>
     <option value="Excellent">Excellent</option>
     <option value="Good">Good</option>
     <option value="Fair">Fair</option>
@@ -106,9 +124,10 @@ export function AddReview(props: SimpleDialogProps) {
 <br/>
 <br/>
 <div className="button">
-  <button type="submit">Submit Review</button>
+  <button type="submit" onClick={handleClose}>Submit Review</button>
   </div>
 </form>
     </Dialog>
-  );
+    </div>
+  )
 }

@@ -1,68 +1,84 @@
-import '../App.css'
-//import { Grid } from "@mui/material"
-// import { AddRental } from "../components/AddRental.jsx"
-import { SearchBar } from "../components/SearchBar.jsx"
-// import { FilterBy } from "../components/FilterBy.jsx"
-import RentalUnit from "../components/RentalUnit" 
-import "../rentalunit.css"
-import AddRental from "../components/AddRental"
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import RentalUnit from "../components/RentalUnit";
+import AddRental from "../components/AddRental";
+import { SearchBar } from "../components/SearchBar";
+import '../App.css';
+import ReviewRental from '../components/Reviews.tsx';
 
-export const dummyData = [
-  {
-      id: 100,
-      title: "Bat Cave",
-      description: "Nice place!",
-      feature: "sunny",
-      price: 100
-  },
-  {
-    id: 200,
-      title: "New place",
-      description: "Fun place!",
-      feature: "dry",
-      price: 100000
-  },
-  {
-    id: 300,
-      title: "Sunnyvale",
-      description: "Bas place!",
-      feature: "hot",
-      price: 200
-  },
-  {
-    id: 400,
-      title: "Palm Springs",
-      description: "Amazing place!",
-      feature: "beautiful",
-      price: 2
-  },
-  {
-    id: 500,
-      title: "Japan",
-      description: "Architecture!",
-      feature: "lovely",
-      price: 333
-  },
-  {
-    id: 600,
-      title: "Dubai",
-      description: "Expensive place!",
-      feature: "fancy",
-      price: 999
-  }
-  ]
+interface Unit {
+  id: number;
+  title: string;
+  description: string;
+  feature: string;
+  price: number;
+}
+
+interface Review {
+  username: string;
+  description: string;
+  rating: string;
+  title: string;
+}
 
 export default function Home() {
+  const [result, setResult] = useState<Unit[]>([]);
+  const [review, setReview] = useState<Review[]>([]);
+
+  useEffect(() => {
+    axios.get("http://localhost:3000/listings")
+      .then((res) => {
+        console.log("Fetched listings:", res.data);
+        setResult(res.data);
+      })
+      .catch((err) => console.error("Fetch error:", err));
+  }, []); // ✅ only run once
+
+  useEffect(() => {
+    axios.get("http://localhost:3000/reviews")
+      .then((res) => {
+        console.log("Fetched reviews:", res.data);
+        setReview(res.data);
+      })
+      .catch((err) => console.error("Fetch error:", err));
+  }, []);
+
   return (
     <>
-      <SearchBar/>
-      <AddRental/>
-       <div className="rentalunit"> 
-        {
-        dummyData.map((unit) => 
-        <RentalUnit key={unit.id} id={unit.id} title={unit.title} description={unit.description} feature={unit.feature} price={unit.price}/>
-        )}
+      <SearchBar />
+      <AddRental />
+      <div className="rentalunit">
+        {result.map((unit) => {
+          const matchingReviews = review.filter(r => r.title === unit.title);
 
+          return (
+            <div key={unit.id}>
+              <RentalUnit
+                id={unit.id}
+                title={unit.title}
+                description={unit.description}
+                feature={unit.feature}
+                price={unit.price}
+              />
+
+              {matchingReviews.length > 0 && (
+                <>
+                  {matchingReviews.map((rev, i) => (
+                    <ReviewRental
+                      key={i}
+                      username={rev.username}
+                      description={rev.description}
+                      rating={rev.rating}
+                      title={rev.title}
+                    />
+                  ))}
+                </>
+              )}
+
+              <br />
+            </div>
+          );
+        })}
       </div>
     </>
   );

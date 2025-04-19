@@ -1,11 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import "dotenv/config.js";
-
-const users = []; // In-memory user store (use DB in real apps)
-const SECRET_KEY = 'your_jwt_secret_key';
 
 const app = express();
 app.use(express.json())
@@ -64,51 +61,57 @@ app.post('/signup', async (req, res) => {
     }
 });
     
-  // Login route - authenticate user
-  app.post("/login", async (req, res) => {
-    console.log("Login request received:", req.body);
-    
-    const { username, password } = req.body;
-    if (!username || !password) {
-        return res.status(400).json({ error: "Missing username or password" });
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: "Missing username or password" });
+  }
+
+  try {
+    const sql = "SELECT * FROM user WHERE username = ?";
+    const [rows] = await db.promise().execute(sql, [username]);
+    const user = rows[0];
+
+    if (!user) {
+      return res.status(400).json({ error: "Invalid username or password" });
     }
 
-    try {
-        // Fetch user from the database
-        const sql = "SELECT * FROM user WHERE username = ?";
-        const [users] = await db.promise().execute(sql, [username]);
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid username or password" });
+    }
 
-        if (users.length === 0) {
-            return res.status(400).json({ error: "Invalid username or password" });
-        }
+    console.log("Sending back username:", user.username);
 
-        const user = users[0];
-
-        // Compare the entered password with the hashed password
-        const isMatch = await bcrypt.compare(password, user.password);
-        
-        if (!isMatch) {
-            return res.status(400).json({ error: "Invalid username or password" });
-        }
-
-    res.json({ message: "Login successful" });
+    res.json({ message: "Login successful", username: user.username });
   } catch (err) {
     console.error("Login Error:", err);
-    return res
-      .status(500)
-      .json({ error: "Database error", details: err.message });
+    return res.status(500).json({ error: "Database error", details: err.message });
   }
 });
 
+
+
 // Insert rental
-app.post("/home", async (req, res) => {
+app.post("/add-rental", async (req, res) => {
   console.log("Insert rental info request received:", req.body);
 
   const { title, description, feature, price, username } = req.body;
 
-  if (!title || !description || !feature || !price) {
+  if (!title || !description || !feature || !price || !username) {
     return res.status(400).json({ error: "Missing required fields" });
   }
+ 
+  const [rowss] = await db.promise().execute('SELECT username FROM user WHERE username = ?', [username]);
+
+  if (rowss.length === 0) {
+    console.log('❌ User does not exist');
+    return res.status(404).json({ message: 'User does not exist' });
+  } else {
+    console.log('✅ User exists:', rowss[0].username);
+  }
+
+  try {    
 
   const now = new Date();
   const startOfDay = new Date(now.setHours(0,0,0,0));
@@ -123,43 +126,28 @@ app.post("/home", async (req, res) => {
     return res.status(403).json({message: "You can only post 2 listings per day. "});
   }
 
-  try {
     const sql =
-      "INSERT INTO listings (title, description, feature, price) VALUES (?, ?, ?, ?)";
+      "INSERT INTO listings (title, description, feature, price, username) VALUES (?, ?, ?, ?, ?)";
     await db.promise().execute(sql, [title, description, feature, price, username]);
 
     res.json("Success");
   } catch (err) {
     console.error("Rental Insertion Error:", err);
 
-    const conflictFields = existingUsers.map((rental) => {
-      if (rental.title === title) return "title";
-      if (rental.description === description) return "description";
-      if (rental.feature === feature) return "feature";
-      if (rental.price === price) return "price";
-      return "unknown";
-    });
   }
-        res.json({ message: "Login successful" });
-
-        console.error("Login Error:", err);
-        return res.status(500).json({ error: "Database error", details: err.message });
 });
 
-app.listen(3000, () => {
-  console.log("server is running");
-});
+    app.get("/listings", async (req, res) => {
+      try {
+        const [rows] = await db.promise().query("SELECT * FROM listings");
+        res.json(rows);
+      } catch (err) {
+        console.error("Failed to fetch listings:", err);
+        res.status(500).json({ error: "Database error" });
+      }
+    });
 
-//app.listen(3000, () => {
-   // console.log("server is running")
-//});
-
-app.get('/', (req, res) => {
-    //res.sendFile(path.join(__dirname, '../searchbar.html'));
-  });
-
-  
-/* app.post('/search', (req, res) => {
+    /* app.post('/search', (req, res) => {
      const selectedFeatures = req.body.features;
   
      console.log('User selected features:', selectedFeatures);
@@ -168,15 +156,99 @@ app.get('/', (req, res) => {
     res.send(`You selected: ${Array.isArray(selectedFeatures) ? selectedFeatures.join(', ') : selectedFeatures}`);
 });*/
   
-app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
+// Insert review
+app.post("/add-review", async (req, res) => {
+  console.log("Review request received:", req.body);
+
+  const { rating, description, title, username } = req.body;
+
+  if (!rating || !description || !title || !username) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    //Here checking if the listings exist and extract the owner based on the title itself
+    const [listingRows] = await db
+      .promise()
+      .execute("SELECT username FROM listings WHERE title = ?", [title]);
+
+    // IF the listing is not found, return an error
+    if (listingRows.length === 0) {
+      console.log("No listing found with title:", title);
+      return res.status(404).json({ error: "Listing not found" });
+    }
+
+    // Fetching the username of the person who owns the listing
+    const listingOwner = listingRows[0].username;
+    if (listingOwner === username) {
+      console.log("User is trying to review their own listing:", username);
+      return res
+        .status(403)
+        .json({ error: "You cannot review your own rental unit" });
+    }
+
+    // Checking if user has reviewed the listings in case
+    const [existingReview] = await db
+      .promise()
+      .execute("SELECT * FROM review WHERE username = ? AND title = ?", [
+        username,
+        title,
+      ]);
+
+    // IF this current review from user exists for this listing, just reject the request
+    if (existingReview.length > 0) {
+      console.log("Duplicate review found for:", title);
+      return res
+        .status(409)
+        .json({ error: "You have already reviewed this listing" });
+    }
+
+    // Making sure the user's review limit does not exceed 3 within a day timeframe
+    const now = new Date();
+    // Here setting the start of the day in (HH, MM, SS) format according to real time on your device end
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
+    // Setting the end of the day in (HH, MM, SS) format according to real time on your device end
+    const [reviewCountRows] = await db
+      .promise()
+      .execute(
+        "SELECT COUNT(*) AS count FROM review WHERE username = ? AND date BETWEEN ? AND ?",
+        [username, startOfDay, endOfDay]
+      );
+
+    // IF the user already submitted 3 reviews today, just reject the request
+    if (reviewCountRows[0].count >= 3) {
+      console.log("User has reached review limit");
+      return res
+        .status(403)
+        .json({ error: "You can only post 3 reviews per day" });
+    }
+
+    // Inserting review into the database
+    const sql =
+      "INSERT INTO review (username, rating, description, title) VALUES (?, ?, ?, ?)";
+    await db.promise().execute(sql, [username, rating, description, title]);
+
+    // IF everything is successful, respond with success
+    res.json({ message: "Review submitted successfully" });
+  } catch (err) {
+    // IF an error occurs, log it and return a server error response
+    console.error("Review submission error:", err);
+    res.status(500).json({ error: "Database error", details: err.message });
+  }
 });
 
-
-app.get('/reviews', (req, res) => {
-  res.sendFile(path.join(__dirname, '../reviews.html'));
+app.get("/reviews", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT * FROM review");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
-
-
-
+app.listen(3000, () => {
+  console.log("server is running");
+});

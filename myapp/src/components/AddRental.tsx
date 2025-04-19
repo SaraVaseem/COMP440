@@ -1,12 +1,17 @@
 import Box from '@mui/material/Box';
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/material/Icon';
-import Button from "@mui/material/Button";
 import {useState} from 'react'
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import "./FeatureList.json";
 import '../App.css'
+import axios from 'axios';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
 
 const features = [
     "Wi-Fi",
@@ -122,12 +127,21 @@ const features = [
     "Key Fob Access",
     "Recycling Service"  ];
 
-    const emails = ['username@gmail.com', 'user02@gmail.com'];
+    const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
 
     export interface SimpleDialogProps {
         open: boolean;
-        selectedValue: string;
-        onClose: (value: string) => void;
+        success: boolean;
+        onClose: (value: boolean) => void;
       }
       
       export interface Unit {
@@ -139,61 +153,88 @@ const features = [
       }
       
 export default function AddRental() {
-    const [open, setOpen] = useState(false);
-    const [selectedValue, setSelectedValue] = useState(emails[1]);
+
+    const [title, setTitle] = useState();
+    const [description, setDescription] = useState();
+    const [feature, setFeature] = useState<string[]>([]);
+    const [price, setPrice] = useState();
+ const [error, setError] = useState("");
+
+    const handleSubmit = (e: React.ChangeEvent<HTMLInputElement> | any) => {
+      e.preventDefault();
+      const username = localStorage.getItem("username") ?? "guest_user";
+        console.log(username)
+
+      axios.post("http://localhost:3000/add-rental", {
+          title: title,
+          description: description,
+          feature: feature,
+          price: price,
+          username: username
+        })
+        .then((result) => {
+          console.log("Response from server:", result.data);
+          console.log(result.data);
+          setError('All good!')
+        })
+        .catch((err) => {
+          if (err.response && err.response.data) {
+            console.error("Add Rental Error:", err.response.data);
+        }
+        if (err.response.data.error === "Duplicate entry") {
+          setError('No more than two rentals per user in a day.')
+        }
+      });
+  };
   
-    const handleClickOpen = () => {
+  const [open, setOpen] = useState(false);
+
+  const handleClickOpen = () => {
+    if(error!='No more than two rentals per user in a day.') {
       setOpen(true);
-    };
-  
-    const handleClose = (value: string) => {
-      setOpen(false);
-      setSelectedValue(value);
+    }
+  };
+
+  const handleClose = () => {
+    
+    setOpen(false);
+  };
+
+    const handleChange = (event: SelectChangeEvent<typeof feature>) => {
+      const {
+        target: { value },
+      } = event;
+      setFeature(
+        // On autofill we get a stringified value.
+        typeof value === 'string' ? value.split(',') : value,
+      );
     };
 
     return (
         <div style={{display: 'flex', justifyContent:'flex-start'}}>
                     <div className="mt-auto" onClick={handleClickOpen}>
-                    <Button>
         <Box sx={{ '& > :not(style)': { m: 0 } }}>
-          <Fab color="primary" aria-label="add">
+          <Fab onClick={handleClickOpen} color="primary" aria-label="add">
             <AddIcon />
           </Fab>
         </Box>
-        </Button>
         </div>   
-        <RentalPopup
-            selectedValue={selectedValue}
-            open={open}
-            onClose={handleClose}
-            />
-        </div>
-      );
-}
 
-export function RentalPopup(props: SimpleDialogProps) {
-    const { onClose, selectedValue, open } = props;
-    
-    const handleClose = () => {
-      onClose(selectedValue);
-    };
-  
-    const handleListItemClick = (value: string) => {
-      onClose(value);
-    };
-  
-return (
-    <Dialog onClose={handleClose} open={open}>
+        <Dialog open={open}
+        onClose={handleClose}>
     <div className='text'>
   <DialogTitle><b>Add a Rental</b></DialogTitle></div>
-
-<form id="add-rental" method="POST" action="/home">
+    {error && <p style={{ color: "red" }}>{error}</p>}
+<form id="add-rental" onSubmit={handleSubmit}>
 
 <div className="input">
             <input
               type="title"
               placeholder="Title"
               name="title"
+                            onChange={(e: React.ChangeEvent<HTMLInputElement> | any) =>
+                              setTitle(e.target.value)
+                            }
             />
 </div>
 
@@ -202,35 +243,54 @@ return (
               type="description"
               placeholder="Description"
               name="description"
+                            onChange={(e: React.ChangeEvent<HTMLInputElement> | any) =>
+                              setDescription(e.target.value)
+                            }
             />
 </div>
 
-{/* <!-- Rating dropdown --> */}
-<div className="input">
-
-<label>Feature:</label>
-<select id="rating" name="rating">
-<option value="Air Conditioning">Excellent</option>
-<option value="Wi-Fi">Good</option>
-<option value="Bathrooms">Fair</option>
-<option value="Scenic">Poor</option>
-</select>
-</div>
+<div>
+        <FormControl sx={{ m: 1, width: 300 }}>
+          <InputLabel id="demo-multiple-name-label">Feature</InputLabel>
+          <Select
+            labelId="demo-multiple-name-label"
+            id="demo-multiple-name"
+            multiple
+            value={feature}
+            onChange={handleChange}
+            input={<OutlinedInput label="Feature" />}
+            MenuProps={MenuProps}
+          >
+            {features.map((feature) => (
+              <MenuItem
+                key={feature}
+                value={feature}
+              >
+                {feature}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </div>
 
 <div className="input">
             <input
               type="price"
               placeholder="Price"
               name="price"
+                            onChange={(e: React.ChangeEvent<HTMLInputElement> | any) =>
+                              setPrice(e.target.value)
+                            }
             />
 </div>
 
 <br/>
 <br/>
 <div className="button">
-<button type="submit">Add Rental</button>
+<button type="submit" onClick={handleClose}>Add Rental</button>
 </div>
 </form>
 </Dialog>
-);
+        </div>
+      );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import RentalUnit from "../components/RentalUnit";
 import AddRental from "../components/AddRental";
-import { SearchBar } from "../components/SearchBar";
+// import { SearchBar } from "../components/SearchBar";
 import '../App.css';
 import ReviewRental from '../components/Reviews.tsx';
 
@@ -24,6 +24,12 @@ interface Review {
 export default function Home() {
   const [result, setResult] = useState<Unit[]>([]);
   const [review, setReview] = useState<Review[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const filteredUnits = result.filter(unit =>
+    unit.title.toLowerCase().includes(searchTerm) ||
+    unit.feature.toLowerCase().includes(searchTerm)
+  );
 
   useEffect(() => {
     axios.get("http://localhost:3000/listings")
@@ -45,40 +51,45 @@ export default function Home() {
 
   return (
     <>
-      <SearchBar />
+
+<input
+  type="text"
+  placeholder="Search by title or feature"
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+/>
       <AddRental />
       <div className="rentalunit">
-        {result.map((unit) => {
-          const matchingReviews = review.filter(r => r.title === unit.title);
+       {filteredUnits.map((unit) => {
+  const matchingReviews = review.filter(r => r.title === unit.title);
 
-          return (
-            <div key={unit.id}>
-              <RentalUnit
-                id={unit.id}
-                title={unit.title}
-                description={unit.description}
-                feature={unit.feature}
-                price={unit.price}
-              />
+  return (
+    <div key={unit.id}>
+      <RentalUnit
+        id={unit.id}
+        title={unit.title}
+        description={unit.description}
+        feature={unit.feature}
+        price={unit.price}
+      />
 
-              {matchingReviews.length > 0 && (
-                <>
-                  {matchingReviews.map((rev, i) => (
-                    <ReviewRental
-                      key={i}
-                      username={rev.username}
-                      description={rev.description}
-                      rating={rev.rating}
-                      title={rev.title}
-                    />
-                  ))}
-                </>
-              )}
+      {matchingReviews.length > 0 && (
+        <>
+          {matchingReviews.map((rev, i) => (
+            <ReviewRental
+              key={i}
+              username={rev.username}
+              description={rev.description}
+              rating={rev.rating}
+              title={rev.title}
+            />
+          ))}
+        </>
+      )}
+    </div>
+  );
+})}
 
-              <br />
-            </div>
-          );
-        })}
       </div>
     </>
   );

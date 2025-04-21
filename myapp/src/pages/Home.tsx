@@ -51,7 +51,9 @@ export default function Home() {
 
   return (
     <>
-
+<div className="home-text text-4xl font-bold text-center">
+          <b>Rental Listings</b>
+        </div>
 <input
   type="text"
   placeholder="Search by title or feature"
@@ -64,6 +66,8 @@ export default function Home() {
   const matchingReviews = review.filter(r => r.title === unit.title);
 
   return (
+    <>
+    <br/>
     <div key={unit.id}>
       <RentalUnit
         id={unit.id}
@@ -72,7 +76,6 @@ export default function Home() {
         feature={unit.feature}
         price={unit.price}
       />
-
       {matchingReviews.length > 0 && (
         <>
           {matchingReviews.map((rev, i) => (
@@ -87,6 +90,7 @@ export default function Home() {
         </>
       )}
     </div>
+    </>
   );
 })}
 

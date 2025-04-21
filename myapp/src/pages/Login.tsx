@@ -26,6 +26,7 @@ export default function Login() {
         localStorage.setItem("username", result.data.username);
         console.log(result.data.username)
         setSuccess(true);
+        setError("Logged in successfully!");
       })
       .catch((err) => console.log(err));
     setError("Username and/or password incorrect");

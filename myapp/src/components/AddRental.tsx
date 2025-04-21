@@ -175,28 +175,25 @@ export default function AddRental() {
         .then((result) => {
           console.log("Response from server:", result.data);
           console.log(result.data);
-          setError('All good!')
+          setError('Rental Added!')
         })
         .catch((err) => {
           if (err.response && err.response.data) {
             console.error("Add Rental Error:", err.response.data);
-        }
-        if (err.response.data.error === "Duplicate entry") {
-          setError('No more than two rentals per user in a day.')
-        }
+            if (err.response.data.message === "You can only post 2 listings per day. ") {
+              setError('No more than two rentals per user in a day.')
+            }
+          }
       });
   };
   
   const [open, setOpen] = useState(false);
 
   const handleClickOpen = () => {
-    if(error!='No more than two rentals per user in a day.') {
       setOpen(true);
-    }
   };
 
   const handleClose = () => {
-    
     setOpen(false);
   };
 
@@ -213,6 +210,7 @@ export default function AddRental() {
     return (
         <div style={{display: 'flex', justifyContent:'flex-start'}}>
                     <div className="mt-auto" onClick={handleClickOpen}>
+                    {error && <p style={{ color: "red" }}>{error}</p>}
         <Box sx={{ '& > :not(style)': { m: 0 } }}>
           <Fab onClick={handleClickOpen} color="primary" aria-label="add">
             <AddIcon />
@@ -224,7 +222,6 @@ export default function AddRental() {
         onClose={handleClose}>
     <div className='text'>
   <DialogTitle><b>Add a Rental</b></DialogTitle></div>
-    {error && <p style={{ color: "red" }}>{error}</p>}
 <form id="add-rental" onSubmit={handleSubmit}>
 
 <div className="input">

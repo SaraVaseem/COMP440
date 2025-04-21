@@ -23,7 +23,7 @@ export default function ReviewRental(props:Review) {
           <span className="ms-2 text-muted">Username:{username}</span>
         </CardHeader>
         <CardContent>
-        <div className="mt-auto">
+        <div className="mt-auto review">
           Rating:{rating}
           </div>
           <div className="mt-auto">

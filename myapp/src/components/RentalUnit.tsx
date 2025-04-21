@@ -50,7 +50,15 @@ export default function RentalUnit(props:Unit) {
       .catch((err) => {
         if (err.response && err.response.data) {
           console.error("Add Review Error:", err.response.data);
-          setError(err.response.data)
+          if (err.response.data.error === "You cannot review your own rental unit") {
+            setError("You cannot review your own rental unit");
+          } else if (err.response.data.error === "You have already reviewed this listing") {
+            setError("You have already reviewed this listing");
+          } else if (err.response.data.error ===  "You can only post 3 reviews per day") {
+            setError( "You can only post 3 reviews per day");
+          }
+        } else {
+          setError("An unexpected error occurred.");
       }
     });
 };
@@ -68,6 +76,7 @@ export default function RentalUnit(props:Unit) {
 
   return (
     <div>
+            {error && <p style={{ color: "red" }}>{error}</p>}
     <Card className="h-100">
         <CardHeader className="d-flex justify-content-between align-items-baseline mb-4">
         </CardHeader>

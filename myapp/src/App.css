@@ -168,7 +168,11 @@
 
 .home-text {
   color: #3c009d;
-  font-size: 30px;
+  font-size: 50px;
   margin-bottom: 30px;
-  margin-top: 1000px;
+  margin-top: 50px;
+}
+
+.review {
+  color:#3c009d
 }

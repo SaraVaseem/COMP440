@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import RentalUnit from "../components/RentalUnit";
 import AddRental from "../components/AddRental";
-// import { SearchBar } from "../components/SearchBar";
+import { SubSearchBar } from "../components/SearchBar";
 import '../App.css';
 import ReviewRental from '../components/Reviews.tsx';
 import { FilterBy } from '../components/FilterBy.tsx';
@@ -56,6 +56,9 @@ export default function Home() {
 <div className="home-text text-4xl font-bold text-center">
           <b>Rental Listings</b>
         </div>
+        Click the blue button to add a rental!
+        <br/>
+        <br/>
 <input
   type="text"
   placeholder="Search by title or feature"
@@ -63,6 +66,7 @@ export default function Home() {
   onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
 />
 <FilterBy/>
+<SubSearchBar/>
       <AddRental />
       <div className="rentalunit">
        {filteredUnits.map((unit) => {

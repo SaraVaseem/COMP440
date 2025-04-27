@@ -15,10 +15,19 @@ export function FilterBy() {
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
       setAnchorEl(event.currentTarget);
     };
-    const handleClose = () => {
+    const byUser = () => {
+    //pass e then add functionality to each    
       setAnchorEl(null);
     };
+    const byRental = () => {
+    //pass e then add functionality to each
+        setAnchorEl(null);
+      };
   
+    const handleClose = () => {
+        setAnchorEl(null);
+    }
+
     return (
       <div>
         <Button
@@ -35,12 +44,9 @@ export function FilterBy() {
           anchorEl={anchorEl}
           open={open}
           onClose={handleClose}
-          MenuListProps={{
-            'aria-labelledby': 'basic-button',
-          }}
         >
-          <MenuItem onClick={handleClose}>User</MenuItem>
-          <MenuItem onClick={handleClose}>Rental</MenuItem>
+          <MenuItem onClick={byUser}>User</MenuItem>
+          <MenuItem onClick={byRental}>Rental</MenuItem>
         </Menu>
       </div>
     );

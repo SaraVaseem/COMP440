@@ -5,6 +5,7 @@ import AddRental from "../components/AddRental";
 // import { SearchBar } from "../components/SearchBar";
 import '../App.css';
 import ReviewRental from '../components/Reviews.tsx';
+import { FilterBy } from '../components/FilterBy.tsx';
 
 interface Unit {
   id: number;
@@ -12,6 +13,7 @@ interface Unit {
   description: string;
   feature: string;
   price: number;
+  username: string;
 }
 
 interface Review {
@@ -60,6 +62,7 @@ export default function Home() {
   value={searchTerm}
   onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
 />
+<FilterBy/>
       <AddRental />
       <div className="rentalunit">
        {filteredUnits.map((unit) => {
@@ -75,6 +78,7 @@ export default function Home() {
         description={unit.description}
         feature={unit.feature}
         price={unit.price}
+        username = {unit.username}
       />
       {matchingReviews.length > 0 && (
         <>

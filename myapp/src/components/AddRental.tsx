@@ -150,6 +150,7 @@ const MenuProps = {
         description: string;
         feature: string;
         price: number;
+        username: string;
       }
       
 export default function AddRental() {

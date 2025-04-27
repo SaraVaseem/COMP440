@@ -21,6 +21,7 @@ export interface Unit {
   description: string;
   feature: string;
   price: number;
+  username: string;
 }
 
 export default function RentalUnit(props:Unit) {
@@ -82,6 +83,8 @@ export default function RentalUnit(props:Unit) {
         </CardHeader>
         <CardContent>
         <div className="mt-auto">
+        <span className="fs-2"><strong>Posted By: </strong>{props.username}</span>
+        <br/>
         <span className="fs-2"><strong>Title:</strong>{props.title}</span>
         <br/>
         <strong>Description:</strong>{props.description}

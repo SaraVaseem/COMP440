@@ -108,7 +108,9 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Invalid username or password" });
     }
 
-    res.json({ message: "Login successful" });
+    console.log("Sending back username:", user.username);
+
+    res.json({ message: "Login successful", username: user.username });
   } catch (err) {
     console.error("Login Error:", err);
     return res
@@ -118,33 +120,44 @@ app.post("/login", async (req, res) => {
 });
 
 // Insert rental
-app.post("/home", async (req, res) => {
+app.post("/add-rental", async (req, res) => {
   console.log("Insert rental info request received:", req.body);
 
   const { title, description, feature, price, username } = req.body;
 
-  if (!title || !description || !feature || !price) {
+  if (!title || !description || !feature || !price || !username) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  const now = new Date();
-  const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-  const endOfDay = new Date(now.setHours(23, 59, 59, 999));
-
-  const [rows] = await db
+  const [rowss] = await db
     .promise()
-    .execute(
-      "Select COUNT(*) AS count FROM listings WHERE username = ? AND date BETWEEN ? and ?",
-      [username, startOfDay, endOfDay]
-    );
+    .execute("SELECT username FROM user WHERE username = ?", [username]);
 
-  if (rows[0].count >= 2) {
-    return res
-      .status(403)
-      .json({ message: "You can only post 2 listings per day. " });
+  if (rowss.length === 0) {
+    console.log("❌ User does not exist");
+    return res.status(404).json({ message: "User does not exist" });
+  } else {
+    console.log("✅ User exists:", rowss[0].username);
   }
 
   try {
+    const now = new Date();
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
+    const [rows] = await db
+      .promise()
+      .execute(
+        "Select COUNT(*) AS count FROM listings WHERE username = ? AND date BETWEEN ? and ?",
+        [username, startOfDay, endOfDay]
+      );
+
+    if (rows[0].count >= 2) {
+      return res
+        .status(403)
+        .json({ message: "You can only post 2 listings per day. " });
+    }
+
     const sql =
       "INSERT INTO listings (title, description, feature, price) VALUES (?, ?, ?, ?)";
     await db
@@ -169,85 +182,6 @@ app.post("/home", async (req, res) => {
   return res
     .status(500)
     .json({ error: "Database error", details: err.message });
-});
-
-// Submitting rental reviews info based on criteria by **KAUNG**
-app.post("/home", async (req, res) => {
-  console.log("Review request received:", req.body);
-
-  const { condition, description, title, username } = req.body;
-
-  if (!condition || !description || !title || !username) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  try {
-    //Here checking if the listings exist and extract the owner based on the title itself
-    const [listingRows] = await db
-      .promise()
-      .execute("SELECT username FROM listings WHERE title = ?", [title]);
-
-    // IF the listing is not found, return an error
-    if (listingRows.length === 0) {
-      return res.status(404).json({ error: "Listing not found" });
-    }
-
-    // Fetching the username of the person who owns the listing
-    const listingOwner = listingRows[0].username;
-    if (listingOwner === username) {
-      return res
-        .status(403)
-        .json({ error: "You cannot review your own rental unit" });
-    }
-
-    // Checking if user has reviewed the listings in case
-    const [existingReview] = await db
-      .promise()
-      .execute("SELECT * FROM review WHERE username = ? AND title = ?", [
-        username,
-        title,
-      ]);
-
-    // IF this current review from user exists for this listing, just reject the request
-    if (existingReview.length > 0) {
-      return res
-        .status(409)
-        .json({ error: "You have already reviewed this listing" });
-    }
-
-    // Making sure the user's review limit does not exceed 3 within a day timeframe
-    const now = new Date();
-    // Here setting the start of the day in (HH, MM, SS) format according to real time on your device end
-    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
-
-    // Setting the end of the day in (HH, MM, SS) format according to real time on your device end
-    const [reviewCountRows] = await db
-      .promise()
-      .execute(
-        "SELECT COUNT(*) AS count FROM review WHERE username = ? AND date BETWEEN ? AND ?",
-        [username, startOfDay, endOfDay]
-      );
-
-    // IF the user already submitted 3 reviews today, just reject the request
-    if (reviewCountRows[0].count >= 3) {
-      return res
-        .status(403)
-        .json({ error: "You can only post 3 reviews per day" });
-    }
-
-    // Inserting review into the database
-    const sql =
-      "INSERT INTO review (username, condition, description, title) VALUES (?, ?, ?, ?)";
-    await db.promise().execute(sql, [username, condition, description, title]);
-
-    // IF everything is successful, respond with success
-    res.json({ message: "Review submitted successfully" });
-  } catch (err) {
-    // IF an error occurs, log it and return a server error response
-    console.error("Review submission error:", err);
-    res.status(500).json({ error: "Database error", details: err.message });
-  }
 });
 
 app.listen(3000, () => {

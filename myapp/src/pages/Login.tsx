@@ -23,8 +23,10 @@ export default function Login() {
       .post("http://localhost:3000/login", { username, password })
       .then((result) => {
         console.log(result);
+        localStorage.setItem("username", result.data.username);
+        console.log(result.data.username)
         setSuccess(true);
-        //login(result)
+        setError("Logged in successfully!");
       })
       .catch((err) => console.log(err));
     setError("Username and/or password incorrect");

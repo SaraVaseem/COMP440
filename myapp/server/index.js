@@ -259,7 +259,7 @@ app.get("/reviews", async (req, res) => {
 //sara's template Week 5 task 1
 app.get("/Mostexpensive", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT F.feature, L.title, L.description, L.price FROM features as F JOIN listings as L on F.listing_title = L.title WHERE L.price = ( SELECT MAX(L.price) FROM features as F JOIN listings as L ON F.listing_title = L.title WHERE F.feature=F.feature)");
+    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch reviews:", err);
@@ -270,7 +270,7 @@ app.get("/Mostexpensive", async (req, res) => {
 //sara's template Week 5 task 2
 app.get("/TwoFeatureRentals", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT F.feature, L.title, L.description, L.price FROM features as F JOIN listings as L on F.listing_title = L.title WHERE L.price = ( SELECT MAX(L.price) FROM features as F JOIN listings as L ON F.listing_title = L.title WHERE F.feature=F.feature)");
+    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch reviews:", err);
@@ -281,7 +281,7 @@ app.get("/TwoFeatureRentals", async (req, res) => {
 //sara's template Week 5 task 3
 app.get("/FetchExcellentReviews", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT F.feature, L.title, L.description, L.price FROM features as F JOIN listings as L on F.listing_title = L.title WHERE L.price = ( SELECT MAX(L.price) FROM features as F JOIN listings as L ON F.listing_title = L.title WHERE F.feature=F.feature)");
+    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch excellent reviews:", err);

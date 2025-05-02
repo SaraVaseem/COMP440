@@ -5,7 +5,7 @@ import AddRental from "../components/AddRental";
 // import { SubSearchBar } from "../components/SearchBar";
 import '../App.css';
 import ReviewRental from '../components/Reviews.tsx';
-import { FilterBy } from '../components/FilterBy.tsx';
+// import { FilterBy } from '../components/FilterBy.tsx';
 import User from '../components/User.tsx';
 // import { RentalFilters } from '../components/FilterBy.tsx';
 import { Button } from '@mui/material';
@@ -32,6 +32,12 @@ interface Review {
 }
 
 export default function Home() {
+      const [filter, setFilter] = useState("SelectFilter");
+      const [ERentals, setERentals] = useState(false);
+      const [HRentals, setHRentals] = useState(false);
+      const [MRentals, setMRentals] = useState(false);
+      const [BReviewer, setBReviewer] = useState(false);
+      const [RentalsNoBReviews, setRentalsNoBReviews] = useState(false);
   const [result, setResult] = useState<Unit[]>([]);
   const [review, setReview] = useState<Review[]>([]);
   const [user, setUser] = useState<User[]>([]);
@@ -44,11 +50,8 @@ export default function Home() {
 
   const [firstsearchTerm, setFirstSearchTerm] = useState<string>("");
   
-  const [submit, setSubmit] = useState(false);
+  const [byuser, setSubmitUser] = useState(false);
 
-  const handleSubmit = () => {
-    setSubmit(true);
-  };
   const getTwoFeatureRentals = () => {
     axios.get("http://localhost:3000/TwoFeatueRentals")
     .then((res) => {
@@ -66,26 +69,30 @@ export default function Home() {
     
     //eventually make it like below
     //if (!firstsearchTerm && !filter && !secondSearchTerm && !thirdSearchTerm) return true;
-    if (!firstsearchTerm && !secondsearchTerm && !thirdsearchTerm) return true;
+    if (firstsearchTerm || secondsearchTerm || thirdsearchTerm) return matchesFirst;
 
-   if(submit) return matchesFirst; //returning nothing  --> need to erase to filter
+    if(byuser) return false; //returning nothing  --> need to erase to filter
 
-    return matchesFirst
+    return unit
   });
 
   const filteredUsers = user.filter(user => {
-         
-    const matchesFirst = firstsearchTerm && 
-    (user.username.includes(firstsearchTerm));
-
+        
           //   // If both search modes are empty, show all
           //   if (!secondsearchTerm && !thirdsearchTerm) return true;
-          if (!firstsearchTerm && !secondsearchTerm && !thirdsearchTerm) return true;
+   
+         if(!byuser) return false; // --> need to erase to filter
 
-         if(submit) return matchesFirst; // --> need to erase to filter
-
-    return matchesFirst;
+    return user;
   });
+
+  useEffect(() => {
+    filter === "ExpensiveRentals" ? setERentals(true) : setERentals(false);
+    filter === "HighRatedRentals" ? setHRentals(true) : setHRentals(false);
+    filter === "MostRentalsPostedUsers" ? setMRentals(true) : setMRentals(false);
+    filter === "BadReviewer" ? setBReviewer(true) : setBReviewer(false);
+    filter === "RentalsWithNoBadReviews" ? setRentalsNoBReviews(true) : setRentalsNoBReviews(false);
+  }, [filter]);
 
   useEffect(() => {
     axios.get("http://localhost:3000/listings")
@@ -113,6 +120,72 @@ export default function Home() {
       })
       .catch((err) => console.error("Fetch error:", err));
   }, []);
+  const byPrice = () => {
+    axios.get("http://localhost:3000/mostExpensive")
+    .then((res) => {
+      console.log("Most Expensive Units:", res.data);
+      setResult(res.data)
+      setSubmitUser(false)
+    })
+    .catch((err) => console.error("Fetch error:", err));      
+  };
+
+    const byHighRating = () => {
+      axios.get("http://localhost:3000/FetchExcellentReviews")
+      .then((res) => {
+        console.log("Highly Rated Units:", res.data);
+        setResult(res.data)
+        setSubmitUser(false)
+      })
+      .catch((err) => console.error("Fetch error:", err));      
+    };
+
+  const byBadReviewer = () => {
+    axios.get("http://localhost:3000/badReviews")
+    .then((res) => {
+      console.log("User with only poor reviews:", res.data);
+      setUser(res.data)
+      setSubmitUser(true)
+    })
+    .catch((err) => console.error("Fetch error:", err));      
+  };
+
+  const byMostRentalsPosted = () => {
+    axios.get("http://localhost:3000/mostRentals")
+        .then((res) => {
+          console.log("Users that posted most rentals in a day:", res.data);
+          setUser(res.data)
+          setSubmitUser(true)
+        })
+        .catch((err) => console.error("Fetch error:", err));      
+      };
+
+        const byNoBadReviewRental = () => {
+          axios.get("http://localhost:3000/noBadReviews")
+          .then((res) => {
+            console.log("Units with no bad reviews:", res.data);
+            setUser(res.data)
+            setSubmitUser(true)
+          })
+          .catch((err) => console.error("Fetch error:", err));      
+        };
+        
+
+  const handleOnChange = (e:React.ChangeEvent<HTMLSelectElement>) => {
+      setFilter(e.target.value);
+      const selected = e.target.value
+      if(selected =='ExpensiveRentals') {
+        byPrice();
+      } else if (selected=='HighRatedRentals') {
+        byHighRating();
+      } else if (selected == 'MostRentalsPostedUsers') {
+        byMostRentalsPosted();
+      } else if (selected == 'BadReviewer') {
+        byBadReviewer();
+      } else if (selected == 'RentalsWithNoBadReviews') {
+        byNoBadReviewRental();
+      }   
+  }
 
   return (
     <>
@@ -126,17 +199,30 @@ export default function Home() {
   placeholder="Search by feature"
   value={firstsearchTerm}
   onChange={(e) => {setFirstSearchTerm(e.target.value.toLowerCase())
-    setSubmit(false)}
+    setSubmitUser(false)}
   }
 />
-<FilterBy
-// onChange={(filters) => {
-//   setCategory(filters.category);
-// }}
-/>
-<div className="button">
-<button type="submit" onClick={handleSubmit}>Add Filter</button>
+{/* <FilterBy/> */}
+
+<div>
+        <select
+          id="basic-menu"
+          className="form-select"
+          onChange={handleOnChange}
+          value = {filter}
+        >
+          <option value='SelectFilter'>Filter</option>          
+          <option value='ExpensiveRentals'>Expensive Rentals</option>
+          <option value='HighRatedRentals'>High Rated Rentals</option>
+          <option value='MostRentalsPostedUsers'>Most Rentals Posted Users</option>
+          <option value='BadReviewer'>Bad Reviewer</option>
+          <option value='RentalsWithNoBadReviews'>Rentals With No Bad Reviews</option>
+        </select>
 </div>
+
+{/* <div className="button">
+<button type="submit" onClick={handleSubmit}>Add Filter</button>
+</div> */}
 {/* <SubSearchBar/> */}
               <p>Search by Users With Different Features</p>
                 <input
@@ -144,14 +230,14 @@ export default function Home() {
                   placeholder="Rental One" 
                   value={secondsearchTerm}
                   onChange={(e) => {setSecondSearchTerm(e.target.value.toLowerCase()) 
-                    setSubmit(false)}}
+                    setSubmitUser(true)}}
           />
                 <input
                   type="search"
                   placeholder="Rental Two" 
                   value={thirdsearchTerm}
                   onChange={(e) => {setThirdSearchTerm(e.target.value.toLowerCase())
-                    setSubmit(false)}
+                    setSubmitUser(true)}
                   }
           />            
 <button type="submit" onClick={getTwoFeatureRentals}>Search</button>

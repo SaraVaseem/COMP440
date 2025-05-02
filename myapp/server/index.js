@@ -278,7 +278,7 @@ app.get("/FetchExcellentReviews", async (req, res) => {
   }
 });
 
-//sara's template Week 5 task 4
+//sara's template Week 5 task 4 users
 app.get("/mostRentals", async (req, res) => {
   try {
     const [rows] = await db.promise().query("SELECT max(listings.username) FROM listings WHERE Date = '2025-04-20' Group by Date");
@@ -289,7 +289,7 @@ app.get("/mostRentals", async (req, res) => {
   }
 });
 
-//sara's template Week 5 task 5
+//sara's template Week 5 task  users
 app.get("/badReviews", async (req, res) => {
   try {
     const [rows] = await db.promise().query("SELECT username FROM review WHERE rating LIKE 'Poor'");
@@ -300,7 +300,7 @@ app.get("/badReviews", async (req, res) => {
   }
 });
 
-//sara's template Week 5 task 6
+//sara's template Week 5 task 6 users
 app.get("/noBadReviews", async (req, res) => {
   try {
     const [rows] = await db.promise().query("SELECT DISTINCT L.username FROM listings as L, review as R WHERE R.title = L.title AND (R.rating NOT LIKE 'Poor' or R.rating IS NULL)");

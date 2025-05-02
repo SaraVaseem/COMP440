@@ -7,7 +7,8 @@ import '../App.css';
 import ReviewRental from '../components/Reviews.tsx';
 import { FilterBy } from '../components/FilterBy.tsx';
 import User from '../components/User.tsx';
-import { RentalFilters } from '../components/FilterBy.tsx';
+// import { RentalFilters } from '../components/FilterBy.tsx';
+import { Button } from '@mui/material';
 
 interface Unit {
   id: number;
@@ -34,7 +35,7 @@ export default function Home() {
   const [result, setResult] = useState<Unit[]>([]);
   const [review, setReview] = useState<Review[]>([]);
   const [user, setUser] = useState<User[]>([]);
-  const [category, setCategory] = useState<RentalFilters['category']>();
+  // const [category, setCategory] = useState<RentalFilters['category']>();
   const [secondsearchTerm, setSecondSearchTerm] = useState<string>("");
   const [thirdsearchTerm, setThirdSearchTerm] = useState<string>("");
   // const [filter, setFilter] = useState<boolean>(false);
@@ -42,6 +43,12 @@ export default function Home() {
 // const secondSearchTerm = localStorage.getItem("secondSearchTerm") ?? "null";
 
   const [firstsearchTerm, setFirstSearchTerm] = useState<string>("");
+  
+  const [submit, setSubmit] = useState(false);
+
+  const handleSubmit = () => {
+    setSubmit(true);
+  };
 
   const filteredUnits = result.filter(unit => {
     const title = unit.title.toLowerCase();
@@ -53,6 +60,8 @@ export default function Home() {
     //eventually make it like below
     //if (!firstsearchTerm && !filter && !secondSearchTerm && !thirdSearchTerm) return true;
     if (!firstsearchTerm) return true;
+
+    if(submit) return false;
 
     return matchesFirst
   });
@@ -66,6 +75,8 @@ export default function Home() {
           
           //   // If both search modes are empty, show all
           //   if (!secondsearchTerm && !thirdsearchTerm) return true;
+
+          if(submit) return false;
 
     return user;
   });
@@ -108,26 +119,34 @@ export default function Home() {
   type="text"
   placeholder="Search by title or feature"
   value={firstsearchTerm}
-  onChange={(e) => setFirstSearchTerm(e.target.value.toLowerCase())}
+  onChange={(e) => {setFirstSearchTerm(e.target.value.toLowerCase())
+    setSubmit(false)}
+  }
 />
 <FilterBy
-onChange={(filters) => {
-  setCategory(filters.category);
-}}
+// onChange={(filters) => {
+//   setCategory(filters.category);
+// }}
 />
+<div className="button">
+<button type="submit" onClick={handleSubmit}>Add Filter</button>
+</div>
 {/* <SubSearchBar/> */}
               <p>Search by Users With Different Features</p>
                 <input
                   type="search"
                   placeholder="Rental One" 
                   value={secondsearchTerm}
-                  onChange={(e) => setSecondSearchTerm(e.target.value.toLowerCase())}
+                  onChange={(e) => {setSecondSearchTerm(e.target.value.toLowerCase()) 
+                    setSubmit(false)}}
           />
                 <input
                   type="search"
                   placeholder="Rental Two" 
                   value={thirdsearchTerm}
-                  onChange={(e) => setThirdSearchTerm(e.target.value.toLowerCase())}
+                  onChange={(e) => {setThirdSearchTerm(e.target.value.toLowerCase())
+                    setSubmit(false)}
+                  }
           />            
 
       <AddRental />

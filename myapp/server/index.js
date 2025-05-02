@@ -130,6 +130,12 @@ app.post("/add-rental", async (req, res) => {
       "INSERT INTO listings (title, description, feature, price, username) VALUES (?, ?, ?, ?, ?)";
     await db.promise().execute(sql, [title, description, feature, price, username]);
 
+    for(let i = 0; i < feature.length; i++ ) {
+      const sql_features =
+      "INSERT INTO features (listing_title, feature) VALUES (?, ?)";
+    await db.promise().execute(sql_features, [title, feature[i]]);
+}
+
     res.json("Success");
   } catch (err) {
     console.error("Rental Insertion Error:", err);
@@ -147,15 +153,16 @@ app.post("/add-rental", async (req, res) => {
       }
     });
 
-    /* app.post('/search', (req, res) => {
-     const selectedFeatures = req.body.features;
-  
-     console.log('User selected features:', selectedFeatures);
-  
-    //For now, just send them back as a response
-    res.send(`You selected: ${Array.isArray(selectedFeatures) ? selectedFeatures.join(', ') : selectedFeatures}`);
-});*/
-  
+    app.get("/getUsers", async (req, res) => {
+      try {
+        const [rows] = await db.promise().query("SELECT DISTINCT username FROM listings");
+        res.json(rows);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+        res.status(500).json({ error: "Database error" });
+      }
+    });
+
 // Insert review
 app.post("/add-review", async (req, res) => {
   console.log("Review request received:", req.body);
@@ -245,6 +252,61 @@ app.get("/reviews", async (req, res) => {
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+//sara's template Week 5 task 1
+app.get("/Mostexpensive", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT F.feature, L.title, L.description, L.price FROM features as F JOIN listings as L on F.listing_title = L.title WHERE L.price = ( SELECT MAX(L.price) FROM features JOIN listings ON F.listing_title = L.title WHERE F.feature LIKE L.feature)");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+//sara's template Week 5 task 3 (only one that works)
+app.get("/FetchExcellentReviews", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT L.title FROM listings as L INNER JOIN review as r ON r.title = L.title WHERE (rating LIKE 'Excellent') or (rating LIKE 'Good')");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch excellent reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+//sara's template Week 5 task 4
+app.get("/mostRentals", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT max(listings.username) FROM listings WHERE Date = '2025-04-20' Group by Date");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch most rentals:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+//sara's template Week 5 task 5
+app.get("/badReviews", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT username FROM review WHERE rating LIKE 'Poor'");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch bad reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+//sara's template Week 5 task 6
+app.get("/noBadReviews", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT DISTINCT L.username FROM listings as L, review as R WHERE R.title = L.title AND (R.rating NOT LIKE 'Poor' or R.rating IS NULL)");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch users with no poor reviews:", err);
     res.status(500).json({ error: "Database error" });
   }
 });

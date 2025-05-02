@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import RentalUnit from "../components/RentalUnit";
 import AddRental from "../components/AddRental";
-import { SubSearchBar } from "../components/SearchBar";
+// import { SubSearchBar } from "../components/SearchBar";
 import '../App.css';
 import ReviewRental from '../components/Reviews.tsx';
 import { FilterBy } from '../components/FilterBy.tsx';
+import User from '../components/User.tsx';
+import { RentalFilters } from '../components/FilterBy.tsx';
 
 interface Unit {
   id: number;
@@ -13,6 +15,11 @@ interface Unit {
   description: string;
   feature: string;
   price: number;
+  username: string;
+  date: string;
+}
+
+interface User {
   username: string;
 }
 
@@ -26,12 +33,42 @@ interface Review {
 export default function Home() {
   const [result, setResult] = useState<Unit[]>([]);
   const [review, setReview] = useState<Review[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [user, setUser] = useState<User[]>([]);
+  const [category, setCategory] = useState<RentalFilters['category']>();
+  const [secondsearchTerm, setSecondSearchTerm] = useState<string>("");
+  const [thirdsearchTerm, setThirdSearchTerm] = useState<string>("");
+  // const [filter, setFilter] = useState<boolean>(false);
 
-  const filteredUnits = result.filter(unit =>
-    unit.title.toLowerCase().includes(searchTerm) ||
-    unit.feature.toLowerCase().includes(searchTerm)
-  );
+// const secondSearchTerm = localStorage.getItem("secondSearchTerm") ?? "null";
+
+  const [firstsearchTerm, setFirstSearchTerm] = useState<string>("");
+
+  const filteredUnits = result.filter(unit => {
+    const title = unit.title.toLowerCase();
+    const feature = unit.feature.toLowerCase();
+  
+    const matchesFirst = firstsearchTerm && 
+      (title.includes(firstsearchTerm) || feature.includes(firstsearchTerm));
+    
+    //eventually make it like below
+    //if (!firstsearchTerm && !filter && !secondSearchTerm && !thirdSearchTerm) return true;
+    if (!firstsearchTerm) return true;
+
+    return matchesFirst
+  });
+
+  const filteredUsers = user.filter(user => {
+
+          //   const matchesAdjacent = 
+          //   secondsearchTerm && thirdsearchTerm &&
+          // (unit.feature.includes(secondsearchTerm) || unit.feature.includes(thirdsearchTerm))
+          //     && unit.date === unit.date;
+          
+          //   // If both search modes are empty, show all
+          //   if (!secondsearchTerm && !thirdsearchTerm) return true;
+
+    return user;
+  });
 
   useEffect(() => {
     axios.get("http://localhost:3000/listings")
@@ -51,6 +88,15 @@ export default function Home() {
       .catch((err) => console.error("Fetch error:", err));
   }, []);
 
+  useEffect(() => {
+    axios.get("http://localhost:3000/getUsers")
+      .then((res) => {
+        console.log("Fetched users:", res.data);
+        setUser(res.data);
+      })
+      .catch((err) => console.error("Fetch error:", err));
+  }, []);
+
   return (
     <>
 <div className="home-text text-4xl font-bold text-center">
@@ -58,17 +104,48 @@ export default function Home() {
         </div>
         Click the blue button to add a rental!
         <br/>
-        <br/>
-<input
+        <input
   type="text"
   placeholder="Search by title or feature"
-  value={searchTerm}
-  onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+  value={firstsearchTerm}
+  onChange={(e) => setFirstSearchTerm(e.target.value.toLowerCase())}
 />
-<FilterBy/>
-<SubSearchBar/>
+<FilterBy
+onChange={(filters) => {
+  setCategory(filters.category);
+}}
+/>
+{/* <SubSearchBar/> */}
+              <p>Search by Users With Different Features</p>
+                <input
+                  type="search"
+                  placeholder="Rental One" 
+                  value={secondsearchTerm}
+                  onChange={(e) => setSecondSearchTerm(e.target.value.toLowerCase())}
+          />
+                <input
+                  type="search"
+                  placeholder="Rental Two" 
+                  value={thirdsearchTerm}
+                  onChange={(e) => setThirdSearchTerm(e.target.value.toLowerCase())}
+          />            
+
       <AddRental />
+
+      {filteredUsers.map((user) => {
+return (
+  <>
+  <br/>
+  
+<User
+username = {user.username}
+/>
+</>
+)
+})}
+      
       <div className="rentalunit">
+       
        {filteredUnits.map((unit) => {
   const matchingReviews = review.filter(r => r.title === unit.title);
 
@@ -83,6 +160,7 @@ export default function Home() {
         feature={unit.feature}
         price={unit.price}
         username = {unit.username}
+        date = {unit.date}
       />
       {matchingReviews.length > 0 && (
         <>

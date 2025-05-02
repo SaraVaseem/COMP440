@@ -148,7 +148,7 @@ export function FilterBy() {
           onChange={handleOnChange}
           value = {filter}
         >
-          <option onClick={byPrice} value='SelectFilter'>Filter</option>          
+          <option value='SelectFilter'>Filter</option>          
           <option onClick={byPrice} value='ExpensiveRentals'>Expensive Rentals</option>
           <option onClick={byHighRating} value='HighRatedRentals'>High Rated Rentals</option>
           <option onClick={byMostRentalsPosted} value='MostRentalsPostedUsers'>Most Rentals Posted Users</option>

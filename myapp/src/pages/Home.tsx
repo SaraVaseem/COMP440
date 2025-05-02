@@ -49,36 +49,42 @@ export default function Home() {
   const handleSubmit = () => {
     setSubmit(true);
   };
+  const getTwoFeatureRentals = () => {
+    axios.get("http://localhost:3000/TwoFeatueRentals")
+    .then((res) => {
+      console.log("Users with rentals having both features:", res.data);
+      setUser(res.data)
+    })
+    .catch((err) => console.error("Fetch error:", err));      
+  };
 
   const filteredUnits = result.filter(unit => {
-    const title = unit.title.toLowerCase();
     const feature = unit.feature.toLowerCase();
-  
+
     const matchesFirst = firstsearchTerm && 
-      (title.includes(firstsearchTerm) || feature.includes(firstsearchTerm));
+      (feature.includes(firstsearchTerm));
     
     //eventually make it like below
     //if (!firstsearchTerm && !filter && !secondSearchTerm && !thirdSearchTerm) return true;
-    if (!firstsearchTerm) return true;
+    if (!firstsearchTerm && !secondsearchTerm && !thirdsearchTerm) return true;
 
-    if(submit) return false;
+   if(submit) return matchesFirst; //returning nothing  --> need to erase to filter
 
     return matchesFirst
   });
 
   const filteredUsers = user.filter(user => {
+         
+    const matchesFirst = firstsearchTerm && 
+    (user.username.includes(firstsearchTerm));
 
-          //   const matchesAdjacent = 
-          //   secondsearchTerm && thirdsearchTerm &&
-          // (unit.feature.includes(secondsearchTerm) || unit.feature.includes(thirdsearchTerm))
-          //     && unit.date === unit.date;
-          
           //   // If both search modes are empty, show all
           //   if (!secondsearchTerm && !thirdsearchTerm) return true;
+          if (!firstsearchTerm && !secondsearchTerm && !thirdsearchTerm) return true;
 
-          if(submit) return false;
+         if(submit) return matchesFirst; // --> need to erase to filter
 
-    return user;
+    return matchesFirst;
   });
 
   useEffect(() => {
@@ -117,7 +123,7 @@ export default function Home() {
         <br/>
         <input
   type="text"
-  placeholder="Search by title or feature"
+  placeholder="Search by feature"
   value={firstsearchTerm}
   onChange={(e) => {setFirstSearchTerm(e.target.value.toLowerCase())
     setSubmit(false)}
@@ -148,7 +154,7 @@ export default function Home() {
                     setSubmit(false)}
                   }
           />            
-
+<button type="submit" onClick={getTwoFeatureRentals}>Search</button>
       <AddRental />
 
       {filteredUsers.map((user) => {

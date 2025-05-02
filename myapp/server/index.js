@@ -259,7 +259,7 @@ app.get("/reviews", async (req, res) => {
 //sara's template Week 5 task 1
 app.get("/Mostexpensive", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT F.feature, L.title, L.description, L.price FROM features as F JOIN listings as L on F.listing_title = L.title WHERE L.price = ( SELECT MAX(L.price) FROM features JOIN listings ON F.listing_title = L.title WHERE F.feature LIKE L.feature)");
+    const [rows] = await db.promise().query("SELECT F.feature, L.title, L.description, L.price FROM features as F JOIN listings as L on F.listing_title = L.title WHERE L.price = ( SELECT MAX(L.price) FROM features as F JOIN listings as L ON F.listing_title = L.title WHERE F.feature=F.feature)");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch reviews:", err);
@@ -267,10 +267,21 @@ app.get("/Mostexpensive", async (req, res) => {
   }
 });
 
-//sara's template Week 5 task 3 (only one that works)
+//sara's template Week 5 task 2
+app.get("/TwoFeatureRentals", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT F.feature, L.title, L.description, L.price FROM features as F JOIN listings as L on F.listing_title = L.title WHERE L.price = ( SELECT MAX(L.price) FROM features as F JOIN listings as L ON F.listing_title = L.title WHERE F.feature=F.feature)");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+//sara's template Week 5 task 3
 app.get("/FetchExcellentReviews", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT L.title FROM listings as L INNER JOIN review as r ON r.title = L.title WHERE (rating LIKE 'Excellent') or (rating LIKE 'Good')");
+    const [rows] = await db.promise().query("SELECT F.feature, L.title, L.description, L.price FROM features as F JOIN listings as L on F.listing_title = L.title WHERE L.price = ( SELECT MAX(L.price) FROM features as F JOIN listings as L ON F.listing_title = L.title WHERE F.feature=F.feature)");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch excellent reviews:", err);
@@ -281,7 +292,7 @@ app.get("/FetchExcellentReviews", async (req, res) => {
 //sara's template Week 5 task 4 users
 app.get("/mostRentals", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT max(listings.username) FROM listings WHERE Date = '2025-04-20' Group by Date");
+    const [rows] = await db.promise().query("SELECT username FROM review WHERE rating LIKE 'Poor'");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch most rentals:", err);

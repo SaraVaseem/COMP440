@@ -331,7 +331,9 @@ app.get("/badReviews", async (req, res) => {
   try {
     const [rows] = await db
       .promise()
-      .query("SELECT username FROM review WHERE rating LIKE 'Poor'");
+      .query(
+        "SELECT username FROM review GROUP BY username HAVING COUNT(*) = SUM (rating LIKE 'Poor')"
+      );
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch bad reviews:", err);

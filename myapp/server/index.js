@@ -164,6 +164,12 @@ app.post("/add-rental", async (req, res) => {
       .promise()
       .execute(sql, [title, description, feature, price, username]);
 
+    for(let i = 0; i < feature.length; i++ ) {
+      const sql_features =
+      "INSERT INTO features (listing_title, feature) VALUES (?, ?)";
+    await db.promise().execute(sql_features, [title, feature[i]]);
+}
+
     res.json("Success");
   } catch (err) {
     console.error("Rental Insertion Error:", err);
@@ -188,6 +194,7 @@ app.listen(3000, () => {
   console.log("server is running");
 });
 
+<<<<<<< HEAD
 //app.listen(3000, () => {
 // console.log("server is running")
 //});
@@ -204,6 +211,21 @@ app.get("/", (req, res) => {
     //For now, just send them back as a response
     res.send(`You selected: ${Array.isArray(selectedFeatures) ? selectedFeatures.join(', ') : selectedFeatures}`);
 });*/
+=======
+    app.get("/getUsers", async (req, res) => {
+      try {
+        const [rows] = await db.promise().query("SELECT DISTINCT username FROM listings");
+        res.json(rows);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+        res.status(500).json({ error: "Database error" });
+      }
+    });
+
+// Insert review
+app.post("/add-review", async (req, res) => {
+  console.log("Review request received:", req.body);
+>>>>>>> 9511411b8a197dd4589c4265e26cce6530a29b34
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
@@ -212,3 +234,76 @@ app.listen(PORT, () => {
 app.get("/reviews", (req, res) => {
   res.sendFile(path.join(__dirname, "../reviews.html"));
 });
+<<<<<<< HEAD
+=======
+
+//sara's template Week 5 task 1
+app.get("/Mostexpensive", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+//sara's template Week 5 task 2
+app.get("/TwoFeatureRentals", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+//sara's template Week 5 task 3
+app.get("/FetchExcellentReviews", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch excellent reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+//sara's template Week 5 task 4 users
+app.get("/mostRentals", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT username FROM review WHERE rating LIKE 'Poor'");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch most rentals:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+//sara's template Week 5 task  users
+app.get("/badReviews", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT username FROM review WHERE rating LIKE 'Poor'");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch bad reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+//sara's template Week 5 task 6 users
+app.get("/noBadReviews", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT DISTINCT L.username FROM listings as L, review as R WHERE R.title = L.title AND (R.rating NOT LIKE 'Poor' or R.rating IS NULL)");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch users with no poor reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.listen(3000, () => {
+  console.log("server is running");
+});
+>>>>>>> 9511411b8a197dd4589c4265e26cce6530a29b34

@@ -22,6 +22,7 @@ export interface Unit {
   feature: string;
   price: number;
   username: string;
+  date: string;
 }
 
 export default function RentalUnit(props:Unit) {
@@ -93,6 +94,9 @@ export default function RentalUnit(props:Unit) {
           {props.feature}
           <br/>
           <span className="ms-2 text-muted"><strong>Price:</strong>${props.price}</span>
+          <br/>
+          <strong>Date Posted: </strong>
+          {props.date}
           </div>
           </CardContent>
         <div className="mt-auto" onClick={handleClickOpen}>

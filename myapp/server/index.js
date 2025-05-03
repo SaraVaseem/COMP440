@@ -317,7 +317,7 @@ app.get("/mostRentals", async (req, res) => {
     const [rows] = await db
       .promise()
       .query(
-        "SELECT max(listings.username) FROM listings WHERE Date = '2025-04-20' Group by Date"
+        "SELECT username, total_count FROM (SELECT username, COUNT(*) as total_count FROM listings WHERE DATE(\`date\`) = '2025-04-15' GROUP BY username) as user_counts WHERE total_count = (SELECT MAX(total_count) FROM (SELECT COUNT(*) as total_count FROM listings WHERE DATE(\`date\`) = '2025-04-15' GROUP BY username) as all_rental_counts)"
       );
     res.json(rows);
   } catch (err) {

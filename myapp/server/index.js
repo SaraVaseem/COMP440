@@ -332,7 +332,7 @@ app.get("/badReviews", async (req, res) => {
     const [rows] = await db
       .promise()
       .query(
-        "SELECT username FROM review GROUP BY username HAVING COUNT(*) = SUM (rating LIKE 'Poor')"
+        "SELECT username FROM review GROUP BY username HAVING COUNT(*) = SUM (rating = 'Poor')"
       );
     res.json(rows);
   } catch (err) {

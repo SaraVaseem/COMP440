@@ -287,7 +287,7 @@ app.get("/Mostexpensive", async (req, res) => {
     const [rows] = await db
       .promise()
       .query(
-        "SELECT F.feature, L.title, L.description, L.price FROM features as F JOIN listings as L on F.listing_title = L.title JOIN (SELECT F.feature, MAX(L.price) as max_price FROM features as F JOIN listings as L on F.listing_title = L.title GROUP BY F.feature) as max_price_table ON F.feature = max_price_table.feature AND L.price = max_price_table.max_price ORDERD by F.feature, L.price DESC"
+        "SELECT F.feature, L.title, L.description, L.price FROM features as F JOIN listings as L on F.listing_title = L.title JOIN (SELECT F.feature, MAX(L.price) as max_price FROM features as F JOIN listings as L on F.listing_title = L.title GROUP BY F.feature) as max_price_table ON F.feature = max_price_table.feature AND L.price = max_price_table.max_price ORDER by F.feature, L.price DESC"
       );
     res.json(rows);
   } catch (err) {

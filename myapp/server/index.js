@@ -1,11 +1,8 @@
 import express from "express";
 import cors from "cors";
 import mysql from "mysql2";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import "dotenv/config.js";
-
-const users = []; // In-memory user store (use DB in real apps)
-const SECRET_KEY = "your_jwt_secret_key";
 
 const app = express();
 app.use(express.json());
@@ -52,13 +49,13 @@ app.post("/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const sql =
-      "INSERT INTO user (username, password, firstName, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?)";
+      " INTO user (username, password, firstName, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?)";
     await db
       .promise()
       .execute(sql, [
         username,
         hashedPassword,
-        firstName,
+        firstNaINSERTme,
         lastName,
         email,
         phone,
@@ -81,29 +78,22 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-// Login route - authenticate user
 app.post("/login", async (req, res) => {
-  console.log("Login request received:", req.body);
-
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: "Missing username or password" });
   }
 
   try {
-    // Fetch user from the database
     const sql = "SELECT * FROM user WHERE username = ?";
-    const [users] = await db.promise().execute(sql, [username]);
+    const [rows] = await db.promise().execute(sql, [username]);
+    const user = rows[0];
 
-    if (users.length === 0) {
+    if (!user) {
       return res.status(400).json({ error: "Invalid username or password" });
     }
 
-    const user = users[0];
-
-    // Compare the entered password with the hashed password
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid username or password" });
     }
@@ -159,88 +149,146 @@ app.post("/add-rental", async (req, res) => {
     }
 
     const sql =
-      "INSERT INTO listings (title, description, feature, price) VALUES (?, ?, ?, ?)";
+      "INSERT INTO listings (title, description, feature, price, username) VALUES (?, ?, ?, ?, ?)";
     await db
       .promise()
       .execute(sql, [title, description, feature, price, username]);
 
-    for(let i = 0; i < feature.length; i++ ) {
+    for (let i = 0; i < feature.length; i++) {
       const sql_features =
-      "INSERT INTO features (listing_title, feature) VALUES (?, ?)";
-    await db.promise().execute(sql_features, [title, feature[i]]);
-}
+        "INSERT INTO features (listing_title, feature) VALUES (?, ?)";
+      await db.promise().execute(sql_features, [title, feature[i]]);
+    }
 
     res.json("Success");
   } catch (err) {
     console.error("Rental Insertion Error:", err);
-
-    const conflictFields = existingUsers.map((rental) => {
-      if (rental.title === title) return "title";
-      if (rental.description === description) return "description";
-      if (rental.feature === feature) return "feature";
-      if (rental.price === price) return "price";
-      return "unknown";
-    });
   }
-  res.json({ message: "Login successful" });
-
-  console.error("Login Error:", err);
-  return res
-    .status(500)
-    .json({ error: "Database error", details: err.message });
 });
 
-app.listen(3000, () => {
-  console.log("server is running");
+app.get("/listings", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT * FROM listings");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch listings:", err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
-<<<<<<< HEAD
-//app.listen(3000, () => {
-// console.log("server is running")
-//});
-
-app.get("/", (req, res) => {
-  //res.sendFile(path.join(__dirname, '../searchbar.html'));
+app.get("/getUsers", async (req, res) => {
+  try {
+    const [rows] = await db
+      .promise()
+      .query("SELECT DISTINCT username FROM listings");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch users:", err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
-
-/* app.post('/search', (req, res) => {
-     const selectedFeatures = req.body.features;
-  
-     console.log('User selected features:', selectedFeatures);
-  
-    //For now, just send them back as a response
-    res.send(`You selected: ${Array.isArray(selectedFeatures) ? selectedFeatures.join(', ') : selectedFeatures}`);
-});*/
-=======
-    app.get("/getUsers", async (req, res) => {
-      try {
-        const [rows] = await db.promise().query("SELECT DISTINCT username FROM listings");
-        res.json(rows);
-      } catch (err) {
-        console.error("Failed to fetch users:", err);
-        res.status(500).json({ error: "Database error" });
-      }
-    });
 
 // Insert review
 app.post("/add-review", async (req, res) => {
   console.log("Review request received:", req.body);
->>>>>>> 9511411b8a197dd4589c4265e26cce6530a29b34
 
-app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
+  const { rating, description, title, username } = req.body;
+
+  if (!rating || !description || !title || !username) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    //Here checking if the listings exist and extract the owner based on the title itself
+    const [listingRows] = await db
+      .promise()
+      .execute("SELECT username FROM listings WHERE title = ?", [title]);
+
+    // IF the listing is not found, return an error
+    if (listingRows.length === 0) {
+      console.log("No listing found with title:", title);
+      return res.status(404).json({ error: "Listing not found" });
+    }
+
+    // Fetching the username of the person who owns the listing
+    const listingOwner = listingRows[0].username;
+    if (listingOwner === username) {
+      console.log("User is trying to review their own listing:", username);
+      return res
+        .status(403)
+        .json({ error: "You cannot review your own rental unit" });
+    }
+
+    // Checking if user has reviewed the listings in case
+    const [existingReview] = await db
+      .promise()
+      .execute("SELECT * FROM review WHERE username = ? AND title = ?", [
+        username,
+        title,
+      ]);
+
+    // IF this current review from user exists for this listing, just reject the request
+    if (existingReview.length > 0) {
+      console.log("Duplicate review found for:", title);
+      return res
+        .status(409)
+        .json({ error: "You have already reviewed this listing" });
+    }
+
+    // Making sure the user's review limit does not exceed 3 within a day timeframe
+    const now = new Date();
+    // Here setting the start of the day in (HH, MM, SS) format according to real time on your device end
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
+    // Setting the end of the day in (HH, MM, SS) format according to real time on your device end
+    const [reviewCountRows] = await db
+      .promise()
+      .execute(
+        "SELECT COUNT(*) AS count FROM review WHERE username = ? AND date BETWEEN ? AND ?",
+        [username, startOfDay, endOfDay]
+      );
+
+    // IF the user already submitted 3 reviews today, just reject the request
+    if (reviewCountRows[0].count >= 3) {
+      console.log("User has reached review limit");
+      return res
+        .status(403)
+        .json({ error: "You can only post 3 reviews per day" });
+    }
+
+    // Inserting review into the database
+    const sql =
+      "INSERT INTO review (username, rating, description, title) VALUES (?, ?, ?, ?)";
+    await db.promise().execute(sql, [username, rating, description, title]);
+
+    // IF everything is successful, respond with success
+    res.json({ message: "Review submitted successfully" });
+  } catch (err) {
+    // IF an error occurs, log it and return a server error response
+    console.error("Review submission error:", err);
+    res.status(500).json({ error: "Database error", details: err.message });
+  }
 });
 
-app.get("/reviews", (req, res) => {
-  res.sendFile(path.join(__dirname, "../reviews.html"));
+app.get("/reviews", async (req, res) => {
+  try {
+    const [rows] = await db.promise().query("SELECT * FROM review");
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch reviews:", err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
-<<<<<<< HEAD
-=======
 
-//sara's template Week 5 task 1
+//sara's template Week 5 task 1 ** fixed by Kaung
 app.get("/Mostexpensive", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
+    const [rows] = await db
+      .promise()
+      .query(
+        "SELECT F.feature, L.title, L.description, L.price FROM features as F JOIN listings as L on F.listing_title = L.title JOIN (SELECT F.feature, MAX(L.price) as max_price FROM features as F JOIN listings as L on F.listing_title = L.title GROUP BY F.feature) as max_price_table ON F.feature = max_price_table.feature AND L.price = max_price_table.max_price ORDERD by F.feature, L.price DESC"
+      );
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch reviews:", err);
@@ -248,21 +296,14 @@ app.get("/Mostexpensive", async (req, res) => {
   }
 });
 
-//sara's template Week 5 task 2
-app.get("/TwoFeatureRentals", async (req, res) => {
-  try {
-    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
-    res.json(rows);
-  } catch (err) {
-    console.error("Failed to fetch reviews:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
-
-//sara's template Week 5 task 3
+//sara's template Week 5 task 3 (only one that works)
 app.get("/FetchExcellentReviews", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
+    const [rows] = await db
+      .promise()
+      .query(
+        "SELECT L.title FROM listings as L INNER JOIN review as r ON r.title = L.title WHERE (rating LIKE 'Excellent') or (rating LIKE 'Good')"
+      );
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch excellent reviews:", err);
@@ -270,10 +311,14 @@ app.get("/FetchExcellentReviews", async (req, res) => {
   }
 });
 
-//sara's template Week 5 task 4 users
+//sara's template Week 5 task 4
 app.get("/mostRentals", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT username FROM review WHERE rating LIKE 'Poor'");
+    const [rows] = await db
+      .promise()
+      .query(
+        "SELECT max(listings.username) FROM listings WHERE Date = '2025-04-20' Group by Date"
+      );
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch most rentals:", err);
@@ -281,10 +326,12 @@ app.get("/mostRentals", async (req, res) => {
   }
 });
 
-//sara's template Week 5 task  users
+//sara's template Week 5 task 5
 app.get("/badReviews", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT username FROM review WHERE rating LIKE 'Poor'");
+    const [rows] = await db
+      .promise()
+      .query("SELECT username FROM review WHERE rating LIKE 'Poor'");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch bad reviews:", err);
@@ -292,10 +339,14 @@ app.get("/badReviews", async (req, res) => {
   }
 });
 
-//sara's template Week 5 task 6 users
+//sara's template Week 5 task 6
 app.get("/noBadReviews", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT DISTINCT L.username FROM listings as L, review as R WHERE R.title = L.title AND (R.rating NOT LIKE 'Poor' or R.rating IS NULL)");
+    const [rows] = await db
+      .promise()
+      .query(
+        "SELECT DISTINCT L.username FROM listings as L, review as R WHERE R.title = L.title AND (R.rating NOT LIKE 'Poor' or R.rating IS NULL)"
+      );
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch users with no poor reviews:", err);
@@ -306,4 +357,3 @@ app.get("/noBadReviews", async (req, res) => {
 app.listen(3000, () => {
   console.log("server is running");
 });
->>>>>>> 9511411b8a197dd4589c4265e26cce6530a29b34

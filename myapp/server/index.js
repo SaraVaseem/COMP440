@@ -347,7 +347,7 @@ app.get("/noBadReviews", async (req, res) => {
     const [rows] = await db
       .promise()
       .query(
-        "SELECT DISTINCT L.username FROM listings as L JOIN review as R ON L.id = R.listing_id AND R.rating = 'Poor' GROUP BY L.username HAVING COUNT(R.listing_id) = 0"
+        "SELECT L.username FROM listings as L LEFT JOIN review as R ON L.id = R.listing_id AND R.rating = 'Poor' GROUP BY L.username HAVING COUNT(R.listing_id) = 0"
       );
     res.json(rows);
   } catch (err) {

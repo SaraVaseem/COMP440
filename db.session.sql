@@ -1,5 +1,3 @@
-USE registration;
-select * from listings
 
 
 

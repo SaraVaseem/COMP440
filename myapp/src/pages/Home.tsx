@@ -37,10 +37,12 @@ export default function Home() {
       const [HRentals, setHRentals] = useState(false);
       const [MRentals, setMRentals] = useState(false);
       const [BReviewer, setBReviewer] = useState(false);
+      const [error, setError] = useState("");
       const [RentalsNoBReviews, setRentalsNoBReviews] = useState(false);
   const [result, setResult] = useState<Unit[]>([]);
   const [review, setReview] = useState<Review[]>([]);
   const [user, setUser] = useState<User[]>([]);
+  const [returnUsersFromSearch, setUserFromSearch] = useState(false);
   // const [category, setCategory] = useState<RentalFilters['category']>();
   const [secondsearchTerm, setSecondSearchTerm] = useState<string>("");
   const [thirdsearchTerm, setThirdSearchTerm] = useState<string>("");
@@ -52,8 +54,14 @@ export default function Home() {
   
   const [byuser, setSubmitUser] = useState(false);
 
+  //need a post
+
   const getTwoFeatureRentals = () => {
-    axios.get("http://localhost:3000/TwoFeatueRentals")
+    axios
+      .post("http://localhost:3000/PostTwoFeatureRentals", {
+        feature1: secondsearchTerm,
+        feature2: thirdsearchTerm,
+      })
     .then((res) => {
       console.log("Users with rentals having both features:", res.data);
       setUser(res.data)
@@ -63,13 +71,16 @@ export default function Home() {
 
   const filteredUnits = result.filter(unit => {
     const feature = unit.feature.toLowerCase();
+    const username = unit.username.toLowerCase();
 
-    const matchesFirst = firstsearchTerm && 
-      (feature.includes(firstsearchTerm));
+    const matchesFirst =
+      (feature.includes(firstsearchTerm) || username.includes(firstsearchTerm));
     
     //eventually make it like below
     //if (!firstsearchTerm && !filter && !secondSearchTerm && !thirdSearchTerm) return true;
-    if (firstsearchTerm || secondsearchTerm || thirdsearchTerm) return matchesFirst;
+    if (firstsearchTerm) return matchesFirst;
+
+    //if(secondsearchTerm )
 
     if(byuser) return false; //returning nothing  --> need to erase to filter
 
@@ -77,11 +88,12 @@ export default function Home() {
   });
 
   const filteredUsers = user.filter(user => {
-        
-          //   // If both search modes are empty, show all
-          //   if (!secondsearchTerm && !thirdsearchTerm) return true;
-   
-         if(!byuser) return false; // --> need to erase to filter
+ 
+    if(!byuser) return false; // --> need to erase to filter
+
+    if(returnUsersFromSearch) {
+      return User;
+    }
 
     return user;
   });
@@ -137,7 +149,9 @@ export default function Home() {
         setResult(res.data)
         setSubmitUser(false)
       })
-      .catch((err) => console.error("Fetch error:", err));      
+      .catch((err) => { console.error("Fetch error:", err)
+      setError("User has no excellent/good rentals") }
+    );      
     };
 
   const byBadReviewer = () => {
@@ -191,14 +205,15 @@ export default function Home() {
     <>
 <div className="home-text text-4xl font-bold text-center">
           <b>Rental Listings</b>
+          {error && <p style={{ color: "red" }}>{error}</p>}
         </div>
         Click the blue button to add a rental!
         <br/>
         <input
   type="text"
-  placeholder="Search by feature"
+  placeholder="Search by feature or user"
   value={firstsearchTerm}
-  onChange={(e) => {setFirstSearchTerm(e.target.value.toLowerCase())
+  onChange={(e) => {setFirstSearchTerm(e.target.value?.toLowerCase())
     setSubmitUser(false)}
   }
 />
@@ -212,11 +227,11 @@ export default function Home() {
           value = {filter}
         >
           <option value='SelectFilter'>Filter</option>          
-          <option value='ExpensiveRentals'>Expensive Rentals</option>
-          <option value='HighRatedRentals'>High Rated Rentals</option>
-          <option value='MostRentalsPostedUsers'>Most Rentals Posted Users</option>
+          <option value='ExpensiveRentals'>Most Expensive Rentals For Each Feature</option>
+          <option value='HighRatedRentals'>All Excellent/Good Comments</option>
+          <option value='MostRentalsPostedUsers'>Users Who Posted the Most Number of Rentals On 4/15/2025</option>
           <option value='BadReviewer'>Bad Reviewer</option>
-          <option value='RentalsWithNoBadReviews'>Rentals With No Bad Reviews</option>
+          <option value='RentalsWithNoBadReviews'>Owners With No Bad Reviews</option>
         </select>
 </div>
 
@@ -247,10 +262,11 @@ export default function Home() {
 return (
   <>
   <br/>
-  
+  <div key={user.username}>
 <User
 username = {user.username}
 />
+</div>
 </>
 )
 })}

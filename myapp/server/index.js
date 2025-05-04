@@ -259,7 +259,7 @@ app.get("/reviews", async (req, res) => {
 //sara's template Week 5 task 1
 app.get("/Mostexpensive", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
+    const [rows] = await db.promise().query("SELECT F.feature, L.title, L.description, L.price, L.username FROM features as F JOIN listings as L on F.listing_title = L.title JOIN (SELECT F.feature, MAX(L.price) as max_price FROM features as F JOIN listings as L on F.listing_title = L.title GROUP BY F.feature) as max_price_table ON F.feature = max_price_table.feature AND L.price = max_price_table.max_price ORDER by F.feature, L.price DESC");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch reviews:", err);
@@ -267,21 +267,40 @@ app.get("/Mostexpensive", async (req, res) => {
   }
 });
 
-//sara's template Week 5 task 2
-app.get("/TwoFeatureRentals", async (req, res) => {
+//Week 5 task 2
+app.post('/PostTwoFeatureRentals', async (req, res) => {
+  console.log("Post features comparison request received:", req.body);
+  
+  const { feature1, feature2 } = req.body;
+
   try {
-    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
+    const sql = `
+      SELECT DISTINCT l1.username 
+      FROM listings l1 
+      JOIN features f1 ON l1.title = f1.listing_title 
+      JOIN listings l2 ON l1.username = l2.username AND l1.Date = l2.Date AND l1.id <> l2.id 
+      JOIN features f2 ON l2.title = f2.listing_title 
+      WHERE LOWER(f1.feature) = ? AND LOWER(f2.feature) = ?
+    `;
+
+    const [rows] = await db.promise().execute(sql, [
+      feature1.toLowerCase(),
+      feature2.toLowerCase()
+    ]);
+
     res.json(rows);
+    console.log("Success:", rows);
   } catch (err) {
-    console.error("Failed to fetch reviews:", err);
-    res.status(500).json({ error: "Database error" });
+    console.error("Insertion of two comparative features Error:", err);
+    res.status(500).send("Server error");
   }
 });
+
 
 //sara's template Week 5 task 3
 app.get("/FetchExcellentReviews", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT L.title, L.username, L.description, L.feature, L.price, L.date FROM listings as L INNER JOIN review as r ON r.title = L.title  WHERE ((rating LIKE 'Excellent') or (rating LIKE 'Good')) AND ((rating NOT LIKE 'Bad') or (rating NOT LIKE 'Fair'))");
+    const [rows] = await db.promise().query("SELECT l.title, l.description, l.price, l.feature, l.price, l.date, l.username FROM listings l JOIN review r ON r.title = l.title GROUP BY l.id, l.title, l.description, l.price HAVING COUNT(l.title) =  (SUM(CASE  WHEN r.rating NOT IN ('Excellent', 'Good') THEN 1 ELSE 0 END) = 0 )");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch excellent reviews:", err);
@@ -292,7 +311,7 @@ app.get("/FetchExcellentReviews", async (req, res) => {
 //sara's template Week 5 task 4 users
 app.get("/mostRentals", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT username FROM review WHERE rating LIKE 'Poor'");
+    const [rows] = await db.promise().query("SELECT username FROM (SELECT username, COUNT(*) as total_count FROM listings WHERE Date = '2025-04-15' GROUP BY username) as user_counts WHERE total_count = (SELECT MAX(total_count) FROM (SELECT COUNT(*) as total_count FROM listings WHERE Date = '2025-04-15' GROUP BY username) as all_rental_counts)");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch most rentals:", err);
@@ -303,7 +322,7 @@ app.get("/mostRentals", async (req, res) => {
 //sara's template Week 5 task  users
 app.get("/badReviews", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT username FROM review WHERE rating LIKE 'Poor'");
+    const [rows] = await db.promise().query("SELECT username FROM review GROUP BY username HAVING COUNT(*) = SUM(rating = 'Poor')");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch bad reviews:", err);
@@ -314,7 +333,7 @@ app.get("/badReviews", async (req, res) => {
 //sara's template Week 5 task 6 users
 app.get("/noBadReviews", async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT DISTINCT L.username FROM listings as L, review as R WHERE R.title = L.title AND (R.rating NOT LIKE 'Poor' or R.rating IS NULL)");
+    const [rows] = await db.promise().query("SELECT L.username FROM listings as L LEFT JOIN review as R ON L.title = R.title AND R.rating = 'Poor' GROUP BY L.username HAVING COUNT(R.title) = 0");
     res.json(rows);
   } catch (err) {
     console.error("Failed to fetch users with no poor reviews:", err);

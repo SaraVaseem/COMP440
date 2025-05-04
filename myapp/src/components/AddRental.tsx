@@ -214,7 +214,7 @@ export default function AddRental() {
                     {error && <p style={{ color: "red" }}>{error}</p>}
         <Box sx={{ '& > :not(style)': { m: 0 } }}>
           <Fab onClick={handleClickOpen} color="primary" aria-label="add">
-            <AddIcon />
+            Add
           </Fab>
         </Box>
         </div>   

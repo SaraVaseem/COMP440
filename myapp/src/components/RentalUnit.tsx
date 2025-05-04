@@ -94,9 +94,9 @@ export default function RentalUnit(props:Unit) {
           {props.feature}
           <br/>
           <span className="ms-2 text-muted"><strong>Price:</strong>${props.price}</span>
-          <br/>
+          {/* <br/>
           <strong>Date Posted: </strong>
-          {props.date}
+          {props.date} */}
           </div>
           </CardContent>
         <div className="mt-auto" onClick={handleClickOpen}>
